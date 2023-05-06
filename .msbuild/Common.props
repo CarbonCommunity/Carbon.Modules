@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<Configurations>Debug;Release;ReleaseUnix;DebugUnix</Configurations>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Deterministic>true</Deterministic>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<FileAlignment>512</FileAlignment>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<LangVersion>latest</LangVersion>
+		<Platforms>x64</Platforms>
+		<PlatformTarget></PlatformTarget>
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+		<TargetFramework>net48</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<AssemblyName>$(Product)</AssemblyName>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+
+		<FileVersion>$(Version)</FileVersion>
+		<InformationalVersion>$(Version)-$(Configuration)</InformationalVersion>
+
+		<Description>Built using Carbon plugin bootstrap</Description>
+
+		<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+		<Platform Condition="'$(Platform)' == ''">x64</Platform>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
+		<AssemblyName>$(Product)_$([System.DateTime]::UtcNow.ToString('yy.MMdd')).$([System.DateTime]::UtcNow.ToString('HHmmss'))</AssemblyName>
+	</PropertyGroup>
+
+	<Choose>
+		<When Condition="$(Configuration.Contains('Release'))">
+			<PropertyGroup>
+				<DebugType>none</DebugType>
+				<DebugSymbols>false</DebugSymbols>
+				<DefineConstants>$(DefineConstants)</DefineConstants>
+				<Optimize>true</Optimize>
+				<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DebugType>embedded</DebugType>
+				<DebugSymbols>true</DebugSymbols>
+				<DefineConstants>DEBUG;UNITY_ASSERTIONS;$(DefineConstants)</DefineConstants>
+				<Optimize>false</Optimize>
+				<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<Choose>
+		<When Condition="$(Configuration.Contains('Unix'))">
+			<PropertyGroup>
+				<DefineConstants>UNIX;$(DefineConstants);$(UserConstants)</DefineConstants>
+				<OperatingSystem>linux</OperatingSystem>
+			</PropertyGroup>
+		</When>
+		<Otherwise>
+			<PropertyGroup>
+				<DefineConstants>WIN;$(DefineConstants);$(UserConstants)</DefineConstants>
+				<OperatingSystem>windows</OperatingSystem>
+			</PropertyGroup>
+		</Otherwise>
+	</Choose>
+
+	<Import Project="References.props" />
+
+	<Target Name="CustomPreBuildEvent" BeforeTargets="PreBuildEvent">
+		<Message Text="[$(AssemblyName)] &gt;&gt; Product: $(Product) ($(OperatingSystem))" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Target: $(Configuration)|$(Platform)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Assembly Name: $(AssemblyName)" Importance="high" />
+		<Message Text="[$(AssemblyName)] &gt;&gt; Build Constants: $(DefineConstants)" Importance="high" />
+	</Target>
+</Project>

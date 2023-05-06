@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Build">
+	<PropertyGroup>
+		<Product>GatherManager</Product>
+		<OutputType>Library</OutputType>
+		<ProjectGuid>{044a9790-74df-4a8f-8814-31ef909df173}</ProjectGuid>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- Set your plugin version here -->
+		<Version>1.0.0.0</Version>
+
+		<Authors>Carbon Community</Authors>
+		<Copyright>Copyright © 2022-$([System.DateTime]::Now.Year) $(Authors)</Copyright>
+		<RepositoryUrl>https://discord.gg/eXPcNKK4yd</RepositoryUrl>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- The version of carbon to be used -->
+		<!-- edge, preview, production -->
+		<CarbonTag>edge</CarbonTag>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Put here your custom references -->
+		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
+	</ItemGroup>
+
+	<Import Project="$(MSBuildThisFileDirectory)..\.msbuild\Common.props" />
+	<Import Project="$(MSBuildThisFileDirectory)..\.msbuild\Download.targets" />
+</Project>

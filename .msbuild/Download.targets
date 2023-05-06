@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="DownloadToolsTask" AfterTargets="Clean">
+		<PropertyGroup>
+			<DepotDownloaderVersion>2.4.7</DepotDownloaderVersion>
+		</PropertyGroup>
+		<DownloadFile SourceUrl="https://github.com/SteamRE/DepotDownloader/releases/download/DepotDownloader_$(DepotDownloaderVersion)/depotdownloader-$(DepotDownloaderVersion).zip" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tmp" SkipUnchangedFiles="true" />
+		<Unzip SourceFiles="$(MSBuildThisFileDirectory)..\.redist\tmp\depotdownloader-$(DepotDownloaderVersion).zip" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tools\DepotDownloader" OverwriteReadOnlyFiles="true" />
+
+		<Message Text=">> Download 7-Zip task" Importance="high" />
+		<DownloadFile SourceUrl="https://www.7-zip.org/a/7zr.exe" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tools\7z" SkipUnchangedFiles="true" />
+		<DownloadFile SourceUrl="https://7-zip.org/a/7z2201-extra.7z" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tmp" SkipUnchangedFiles="true" />
+
+		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\7z\7zr.exe -y -o$(MSBuildThisFileDirectory)..\.redist\tools\7z x $(MSBuildThisFileDirectory)..\.redist\tmp\7z2201-extra.7z" />
+	</Target>
+
+	<Target Name="DownloadCarbonTask" AfterTargets="DownloadToolsTask">
+		<PropertyGroup>
+			<CarbonRelease Condition="$(Configuration.Contains('production'))">Release</CarbonRelease>
+			<CarbonRelease Condition="!$(Configuration.Contains('production'))">Debug</CarbonRelease>
+			<CarbonWindows>https://github.com/CarbonCommunity/Carbon.Core/releases/download/$(CarbonTag)_build/Carbon.Windows.$(CarbonRelease).zip</CarbonWindows>
+			<CarbonLinux>https://github.com/CarbonCommunity/Carbon.Core/releases/download/$(CarbonTag)_build/Carbon.Linux.$(CarbonRelease).tar.gz</CarbonLinux>
+		</PropertyGroup>
+
+		<DownloadFile SourceUrl="$(CarbonLinux)" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tmp" SkipUnchangedFiles="false" />
+		<DownloadFile SourceUrl="$(CarbonWindows)" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tmp" SkipUnchangedFiles="false" />
+		<DownloadFile SourceUrl="https://raw.githubusercontent.com/CarbonCommunity/Carbon.Core/production/Tools/Helpers/258550_refs.txt" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tools\" SkipUnchangedFiles="false" />
+
+		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -so e $(MSBuildThisFileDirectory)..\.redist\tmp\Carbon.Linux.$(CarbonRelease).tar.gz | $(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -si -ttar -y -o$(MSBuildThisFileDirectory)..\.redist\rust\linux e carbon/managed/Carbon.SDK.dll" />
+		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -y -o$(MSBuildThisFileDirectory)..\.redist\rust\windows e $(MSBuildThisFileDirectory)..\.redist\tmp\Carbon.Windows.$(CarbonRelease).zip carbon/managed/Carbon.SDK.dll" />
+	</Target>
+
+	<Target Name="DownloadRustTask" AfterTargets="DownloadCarbonTask">
+		<PropertyGroup>
+			<RustCommon>-validate -app 258550 -branch public -filelist $(MSBuildThisFileDirectory)..\.redist\tools\258550_refs.txt</RustCommon>
+		</PropertyGroup>
+
+		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\DepotDownloader\DepotDownloader.exe -os linux $(RustCommon) -dir $(MSBuildThisFileDirectory)..\.redist\rust\linux" />
+		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\DepotDownloader\DepotDownloader.exe -os windows $(RustCommon) -dir $(MSBuildThisFileDirectory)..\.redist\rust\windows" />
+
+		<Delete Files="$(MSBuildThisFileDirectory)..\.redist\rust\windows\RustDedicated_Data\Managed\0Harmony.dll" />
+		<Delete Files="$(MSBuildThisFileDirectory)..\.redist\rust\linux\RustDedicated_Data\Managed\0Harmony.dll" />
+	</Target>
+
+	<Target Name="CustomRelease" AfterTargets="PostBuildEvent">
+		<Copy SourceFiles="$(OutputPath)$(TargetName).dll" DestinationFiles="$(OutputPath)$(Product).dll" />
+		<Delete Files="$(OutputPath)$(TargetName).dll" />
+	</Target>
+</Project>
