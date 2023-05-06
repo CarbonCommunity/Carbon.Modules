@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<Target Name="DownloadToolsTask" AfterTargets="Clean">
+	<Target Name="DownloadToolsTask">
 		<PropertyGroup>
 			<DepotDownloaderVersion>2.4.7</DepotDownloaderVersion>
 		</PropertyGroup>
@@ -26,8 +26,8 @@
 		<DownloadFile SourceUrl="$(CarbonWindows)" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tmp" SkipUnchangedFiles="false" />
 		<DownloadFile SourceUrl="https://raw.githubusercontent.com/CarbonCommunity/Carbon.Core/production/Tools/Helpers/258550_refs.txt" DestinationFolder="$(MSBuildThisFileDirectory)..\.redist\tools\" SkipUnchangedFiles="false" />
 
-		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -so e $(MSBuildThisFileDirectory)..\.redist\tmp\Carbon.Linux.$(CarbonRelease).tar.gz | $(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -si -ttar -y -o$(MSBuildThisFileDirectory)..\.redist\rust\linux e carbon/managed/Carbon.SDK.dll" />
-		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -y -o$(MSBuildThisFileDirectory)..\.redist\rust\windows e $(MSBuildThisFileDirectory)..\.redist\tmp\Carbon.Windows.$(CarbonRelease).zip carbon/managed/Carbon.SDK.dll" />
+		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -so e $(MSBuildThisFileDirectory)..\.redist\tmp\Carbon.Linux.$(CarbonRelease).tar.gz | $(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -si -ttar -y -o$(MSBuildThisFileDirectory)..\.redist\rust\linux e carbon/managed/Carbon.SDK.dll carbon/managed/Carbon.Common.dll" />
+		<Exec Command="$(MSBuildThisFileDirectory)..\.redist\tools\7z\7za.exe -y -o$(MSBuildThisFileDirectory)..\.redist\rust\windows e $(MSBuildThisFileDirectory)..\.redist\tmp\Carbon.Windows.$(CarbonRelease).zip carbon/managed/Carbon.SDK.dll carbon/managed/Carbon.Common.dll" />
 	</Target>
 
 	<Target Name="DownloadRustTask" AfterTargets="DownloadCarbonTask">
