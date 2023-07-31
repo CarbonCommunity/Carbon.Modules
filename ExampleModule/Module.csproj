@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 		<!-- Put here your custom references -->
+		<Reference Include="$(MSBuildThisFileDirectory)..\.redist\rust\$(OperatingSystem)\Carbon.Common.dll" Private="false" />
 	</ItemGroup>
 
 	<Import Project="$(MSBuildThisFileDirectory)..\.msbuild\Common.props" />

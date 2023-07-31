@@ -34,7 +34,7 @@ public sealed class CreateItem
 		}
 
 		int newAmount = UnityEngine.Mathf.CeilToInt(Amount * Multiplier);
-		Logger.Warning($"CreateItemEx::{Kind} item:{itemName} mul:{Multiplier} out:{newAmount}");
+		//Logger.Warning($"CreateItemEx::{Kind} item:{itemName} mul:{Multiplier} out:{newAmount}");
 		return ItemManager.Create(itemDefinition, newAmount, Skin);
 	}
 
