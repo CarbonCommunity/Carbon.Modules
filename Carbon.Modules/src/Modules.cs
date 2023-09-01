@@ -14,7 +14,6 @@ public class Initializer : ICarbonModule
 {
 	public void OnLoaded(EventArgs args)
 	{
-		Logger.Log($"TEst");
 	}
 
 	public void OnUnloaded(EventArgs args)
