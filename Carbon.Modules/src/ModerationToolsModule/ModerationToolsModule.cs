@@ -9,7 +9,7 @@ using UnityEngine;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -177,10 +177,14 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 	private object OnServerMessage(string message, string name)
 	{
+#if MINIMAL
+		if (!ConfigInstance.NoGiveNotices || !(name == "SERVER" && message.Contains("gave"))) return null;
+#else
 		var core = Community.Runtime.CorePlugin.To<CorePlugin>();
 		var defaultName = core.DefaultServerChatName != "-1" ? core.DefaultServerChatName : "SERVER";
 
 		if (!ConfigInstance.NoGiveNotices || !(name == defaultName && message.Contains("gave"))) return null;
+#endif
 
 		return true;
 	}
