@@ -10,7 +10,7 @@ using UnityEngine;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -38,7 +38,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		base.OnEnabled(initialized);
 
-		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), authLevel: ConfigInstance.MinimumVanishAuthLevel);
+		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission});
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -55,7 +55,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	private object CanUseLockedEntity(BasePlayer player, BaseLock @lock)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID)
-			&& player.net.connection.authLevel >= ConfigInstance.MinimumAuthLevelUnlockWhileVanished)
+			&& HasPermission(player.UserIDString, ConfigInstance.VanishUnlockWhileVanishedPermission))
 		{
 			return true;
 		}
@@ -231,8 +231,8 @@ public class VanishConfig
 	[JsonProperty("[Anchor] Legend")]
 	public string AnchorLegend => "(0=UpperLeft, 1=UpperCenter, 2=UpperRight, 3=MiddleLeft, 4=MiddleCenter, 5=MiddleRight, 6=LowerLeft, 7=LowerCenter, 8=LowerRight)";
 
-	public int MinimumVanishAuthLevel = 2;
-	public int MinimumAuthLevelUnlockWhileVanished = 2;
+	public string VanishPermission = "vanish.allow";
+	public string VanishUnlockWhileVanishedPermission = "vanish.unlock";
 	public string VanishCommand = "vanish";
 	public bool ToggleNoclipOnVanish = true;
 	public bool ToggleNoclipOnUnvanish = false;
