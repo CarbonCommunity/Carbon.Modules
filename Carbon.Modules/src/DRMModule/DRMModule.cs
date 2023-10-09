@@ -12,7 +12,7 @@ using Oxide.Core.Libraries;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * All rights reserved.
  *
  */
@@ -281,7 +281,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 				{
 					Loader.Parser = Parser;
 					Loader.File = File;
-					Loader.Source = _source;
+					Loader.Sources.Add(_source);
 					Loader.Mod = _mod;
 					Loader.Instance = this;
 					Loader.Load();
