@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -105,7 +106,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 		public ModLoader.ModPackage Mod { get; } = new ModLoader.ModPackage();
 
 		[JsonIgnore]
-		public List<BaseProcessor.Instance> ProcessorInstances { get; } = new List<BaseProcessor.Instance>();
+		public List<BaseProcessor.Process> ProcessorInstances { get; } = new List<BaseProcessor.Process>();
 
 		#region Logging
 
@@ -210,14 +211,14 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 					switch (response.FileType)
 					{
 						case DownloadResponse.FileTypes.Script:
-							var instance = new ScriptInstance
+							var instance = new ScriptProcess
 							{
 								File = entry.Id,
 								_mod = Mod,
 								_source = DecodeBase64(response.Data)
 							};
 							ProcessorInstances.Add(instance);
-							instance.Execute();
+							instance.Execute(Community.Runtime.ScriptProcessor);
 							break;
 
 						case DownloadResponse.FileTypes.DLL:
@@ -258,7 +259,7 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 			return Encoding.UTF8.GetString(Convert.FromBase64String(value));
 		}
 
-		public class ScriptInstance : BaseProcessor.Instance, IScriptProcessor.IScript
+		public class ScriptProcess : BaseProcessor.Process, IScriptProcessor.IScript
 		{
 			internal ModLoader.ModPackage _mod;
 			internal string _source;
@@ -275,15 +276,21 @@ public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 
 				base.Dispose();
 			}
-			public override void Execute()
+			public override void Execute(IBaseProcessor processor)
 			{
 				try
 				{
 					Loader.Parser = Parser;
-					Loader.File = File;
-					Loader.Sources.Add(_source);
+					Loader.Sources.Add(new BaseSource
+					{
+						FilePath = File,
+						FileName = Path.GetFileName(File),
+						ContextFilePath = File,
+						ContextFileName = Path.GetFileName(File),
+						Content = _source
+					});
 					Loader.Mod = _mod;
-					Loader.Instance = this;
+					Loader.Process = this;
 					Loader.Load();
 				}
 				catch (Exception ex)
