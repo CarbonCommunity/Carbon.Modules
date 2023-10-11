@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
+using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Rust.AI;
@@ -126,7 +127,11 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player._limitedNetworking = true;
 			player.DisablePlayerCollider();
 
-			player.OnNetworkSubscribersLeave(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player).ToList());
+			var temp = Pool.GetList<Connection>();
+			temp.AddRange(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player));
+			player.OnNetworkSubscribersLeave(temp);
+			Pool.FreeList(ref temp);
+
 			SimpleAIMemory.AddIgnorePlayer(player);
 
 			if (ConfigInstance.WhooshSoundOnVanish)
