@@ -41,12 +41,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
 	}
 
-	private object IDisallowSkinnedItemsFromBeingCraftable()
-	{
-		if (ConfigInstance.DisallowSkinnedItemsFromBeingCraftable) return true;
-
-		return null;
-	}
 	private object INoteAdminHack(BasePlayer player)
 	{
 		if (HasPermission(player, ConfigInstance.Moderation.Cmod1Permission))
@@ -205,9 +199,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 public class ModerationToolsConfig
 {
-	[JsonProperty("Disallow skinned items from being craftable")]
-	public bool DisallowSkinnedItemsFromBeingCraftable = true;
-
 	[JsonProperty("No give notices")]
 	public bool NoGiveNotices = true;
 
