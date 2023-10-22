@@ -147,10 +147,16 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		if (player == null) return;
 
 		var steamId = arg.GetString(0);
+		var validSteamId = steamId.IsSteamId();
 		var targetPlayer = BasePlayer.FindAwakeOrSleeping(steamId);
 		if (targetPlayer == null)
 		{
-			player.ConsoleMessage($"Couldn't find that player on the server. Banning SteamID.");
+			player.ConsoleMessage($"Couldn't find that player on the server. {(validSteamId ? "Banning SteamID." : "Invalid steam ID.")}");
+
+			if (!validSteamId)
+			{
+				return;
+			}
 		}
 
 		var user = ServerUsers.Get((targetPlayer?.userID) ?? steamId.ToUlong());
