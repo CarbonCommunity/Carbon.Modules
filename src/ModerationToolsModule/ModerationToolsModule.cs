@@ -41,12 +41,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
 	}
 
-	private object IDisallowSkinnedItemsFromBeingCraftable()
-	{
-		if (ConfigInstance.DisallowSkinnedItemsFromBeingCraftable) return true;
-
-		return null;
-	}
 	private object INoteAdminHack(BasePlayer player)
 	{
 		if (HasPermission(player, ConfigInstance.Moderation.Cmod1Permission))
@@ -144,33 +138,40 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		var reason = arg.Args.Skip(1).ToString(" ") ?? "no reason given";
 
 		Puts($"{player} kicked {targetPlayer}: {reason}");
-		Chat.Broadcast($"Kicking {player.displayName} ({reason})", "SERVER", "#eee", 0UL);
-		player.Kick("Kicked: " + reason);
+		Chat.Broadcast($"Kicking {targetPlayer.displayName} ({reason})", "SERVER", "#eee", 0UL);
+		targetPlayer.Kick("Kicked: " + reason);
 	}
 	public void Ban(ConsoleSystem.Arg arg)
 	{
 		var player = arg.Player();
 		if (player == null) return;
 
-		var targetPlayer = BasePlayer.FindAwakeOrSleeping(arg.GetString(0));
+		var steamId = arg.GetString(0);
+		var validSteamId = steamId.IsSteamId();
+		var targetPlayer = BasePlayer.FindAwakeOrSleeping(steamId);
 		if (targetPlayer == null)
 		{
-			player.ConsoleMessage($"Couldn't find that player.");
-			return;
+			player.ConsoleMessage($"Couldn't find that player on the server. {(validSteamId ? "Banning SteamID." : "Invalid steam ID.")}");
+
+			if (!validSteamId)
+			{
+				return;
+			}
 		}
 
-		var user = ServerUsers.Get(targetPlayer.userID);
+		var user = ServerUsers.Get((targetPlayer?.userID) ?? steamId.ToUlong());
 		if (user != null && user.group == ServerUsers.UserGroup.Banned)
 		{
-			Puts($"User {player.userID} is already banned");
+			arg.ReplyWith($"User {targetPlayer.userID} is already banned.");
 			return;
 		}
 
-		var reason = arg.Args.Skip(1).ToString(" ") ?? "no reason given";
-		ServerUsers.Set(player.userID, global::ServerUsers.UserGroup.Banned, player.displayName, reason);
+		var reason = arg.GetString(1) ?? "no reason given";
+		var expiry = arg.GetInt(2, -1);
+		ServerUsers.Set(player.userID, global::ServerUsers.UserGroup.Banned, player.displayName, reason, expiry);
 		ServerUsers.Save();
 
-		Puts($"Kickbanned User: {player.userID} - {player.displayName}: {reason}");
+		arg.ReplyWith($"Kickbanned User: {player.userID} - {player.displayName}: {reason}");
 		Chat.Broadcast($"Kickbanning {player.displayName} ({reason})", "SERVER", "#eee", 0UL);
 		Network.Net.sv.Kick(player.net.connection, $"Banned: {reason}", false);
 	}
@@ -205,9 +206,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 public class ModerationToolsConfig
 {
-	[JsonProperty("Disallow skinned items from being craftable")]
-	public bool DisallowSkinnedItemsFromBeingCraftable = true;
-
 	[JsonProperty("No give notices")]
 	public bool NoGiveNotices = true;
 
