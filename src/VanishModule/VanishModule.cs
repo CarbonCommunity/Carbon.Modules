@@ -218,7 +218,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			var textX = ConfigInstance.InvisibleTextAnchorX;
 			var textY = ConfigInstance.InvisibleTextAnchorY;
-			cui.CreateText(container, "vanishui", null, color: ConfigInstance.InvisibleTextColor, ConfigInstance.InvisibleText, ConfigInstance.InvisibleTextSize,
+			cui.CreateText(container, "vanishui", color: ConfigInstance.InvisibleTextColor, ConfigInstance.InvisibleText, ConfigInstance.InvisibleTextSize,
 				xMin: textX[0], xMax: textX[1], yMin: textY[0], yMax: textY[1], align: ConfigInstance.InvisibleTextAnchor);
 		}
 
