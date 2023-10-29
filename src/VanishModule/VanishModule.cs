@@ -151,10 +151,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			{
 				player.SendConsoleCommand("noclip");
 			}
-			if (ConfigInstance.ToggleGodModeOnVanish && toggleGodMode && player.net.connection.authLevel > 0 && !player.IsGod())
-			{
-				player.net.connection.info.Set("global.god", "true");
-			}
 		}
 		else
 		{
@@ -184,10 +180,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			if (ConfigInstance.ToggleNoclipOnUnvanish && toggleNoclip && player.net.connection.authLevel > 0 && player.IsFlying)
 			{
 				player.SendConsoleCommand("noclip");
-			}
-			if (ConfigInstance.ToggleGodModeOnUnvanish && toggleGodMode && player.net.connection.authLevel > 0 && player.IsGod())
-			{
-				player.net.connection.info.Set("global.god", "false");
 			}
 		}
 	}
@@ -244,8 +236,6 @@ public class VanishConfig
 	public string VanishCommand = "vanish";
 	public bool ToggleNoclipOnVanish = true;
 	public bool ToggleNoclipOnUnvanish = false;
-	public bool ToggleGodModeOnVanish = false;
-	public bool ToggleGodModeOnUnvanish = false;
 
 	public string InvisibleText = "You are currently invisible.";
 	public int InvisibleTextSize = 10;
