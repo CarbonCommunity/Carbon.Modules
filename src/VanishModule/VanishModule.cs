@@ -151,10 +151,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			{
 				player.SendConsoleCommand("noclip");
 			}
-			if (ConfigInstance.ToggleGodModeOnVanish && toggleGodMode && player.net.connection.authLevel > 0 && !player.IsGod())
-			{
-				player.net.connection.info.Set("global.god", "true");
-			}
 		}
 		else
 		{
@@ -185,10 +181,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			{
 				player.SendConsoleCommand("noclip");
 			}
-			if (ConfigInstance.ToggleGodModeOnUnvanish && toggleGodMode && player.net.connection.authLevel > 0 && player.IsGod())
-			{
-				player.net.connection.info.Set("global.god", "false");
-			}
 		}
 	}
 
@@ -218,7 +210,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			var textX = ConfigInstance.InvisibleTextAnchorX;
 			var textY = ConfigInstance.InvisibleTextAnchorY;
-			cui.CreateText(container, "vanishui", null, color: ConfigInstance.InvisibleTextColor, ConfigInstance.InvisibleText, ConfigInstance.InvisibleTextSize,
+			cui.CreateText(container, "vanishui", color: ConfigInstance.InvisibleTextColor, ConfigInstance.InvisibleText, ConfigInstance.InvisibleTextSize,
 				xMin: textX[0], xMax: textX[1], yMin: textY[0], yMax: textY[1], align: ConfigInstance.InvisibleTextAnchor);
 		}
 
@@ -244,8 +236,6 @@ public class VanishConfig
 	public string VanishCommand = "vanish";
 	public bool ToggleNoclipOnVanish = true;
 	public bool ToggleNoclipOnUnvanish = false;
-	public bool ToggleGodModeOnVanish = false;
-	public bool ToggleGodModeOnUnvanish = false;
 
 	public string InvisibleText = "You are currently invisible.";
 	public int InvisibleTextSize = 10;
