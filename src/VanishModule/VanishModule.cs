@@ -218,7 +218,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			var iconX = ConfigInstance.InvisibleIconAnchorX;
 			var iconY = ConfigInstance.InvisibleIconAnchorY;
-			cui.CreateClientImage(container, "vanishui", null, ConfigInstance.InvisibleIconUrl, ConfigInstance.InvisibleIconColor,
+			cui.CreateClientImage(container, "vanishui", ConfigInstance.InvisibleIconUrl, ConfigInstance.InvisibleIconColor,
 				xMin: iconX[0], xMax: iconX[1], yMin: iconY[0], yMax: iconY[1]);
 		}
 
