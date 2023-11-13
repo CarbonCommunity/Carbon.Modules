@@ -6,7 +6,7 @@ using UnityEngine;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2023 Carbon Community
  * Copyright (c) 2022 kasvoton
  * All rights reserved.
  *
@@ -118,7 +118,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		OnEnableStatus();
 	}
 
-	public override void OnServerInit()
+	public override void OnServerInit(bool initial)
 	{
 		var hasChanged = false;
 		foreach (var item in ItemManager.itemList)
@@ -133,7 +133,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 		if (hasChanged) Save();
 
-		base.OnServerInit();
+		base.OnServerInit(initial);
 	}
 }
 
