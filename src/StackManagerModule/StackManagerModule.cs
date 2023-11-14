@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
 using UnityEngine;
@@ -120,18 +121,19 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 
 	public override void OnServerInit(bool initial)
 	{
-		var hasChanged = false;
-		foreach (var item in ItemManager.itemList)
+		if (initial)
 		{
-			if (!DataInstance.Items.ContainsKey(item.shortname))
+			var hasChanged = false;
+
+			foreach (var item in ItemManager.itemList.Where(item => !DataInstance.Items.ContainsKey(item.shortname)))
 			{
 				DataInstance.Items.Add(item.shortname, item.stackable);
 
 				hasChanged = true;
 			}
-		}
 
-		if (hasChanged) Save();
+			if (hasChanged) Save();
+		}
 
 		base.OnServerInit(initial);
 	}
