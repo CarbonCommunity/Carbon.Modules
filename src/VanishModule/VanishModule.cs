@@ -133,6 +133,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			var temp = Pool.GetList<Connection>();
 			temp.AddRange(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player));
 			player.OnNetworkSubscribersLeave(temp);
+			player.ForceUpdateTriggers(exit: true, invoke: true);
 			Pool.FreeList(ref temp);
 
 			SimpleAIMemory.AddIgnorePlayer(player);
@@ -165,6 +166,8 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 			player.drownEffect = _drownEffect;
 			player.fallDamageEffect = _fallDamageEffect;
+
+			player.ForceUpdateTriggers(enter: true, exit: true, invoke: true);
 
 			if (ConfigInstance.GutshotScreamOnUnvanish)
 			{
