@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using Carbon.Base;
 using Network;
 using Network.Visibility;
+using Oxide.Core;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community 
+ * Copyright (c) 2022-2024 Carbon Community
  * Copyright (c) 2022 Vice <https://codefling.com/vice>
  * All rights reserved.
  *
@@ -18,6 +19,7 @@ namespace Carbon.Modules;
 public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
 	public override string Name => "Optimisations";
+	public override VersionNumber Version => new(1, 0, 0);
 	public override Type Type => typeof(OptimisationsModule);
 	public override bool EnabledByDefault => false;
 
