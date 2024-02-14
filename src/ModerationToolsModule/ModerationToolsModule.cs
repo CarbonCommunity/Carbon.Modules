@@ -5,11 +5,12 @@ using Carbon.Core;
 using Carbon.Extensions;
 using ConVar;
 using Newtonsoft.Json;
+using Oxide.Core;
 using UnityEngine;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -20,6 +21,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 {
 	public override string Name => "ModerationTools";
 	public override Type Type => typeof(ModerationToolsModule);
+	public override VersionNumber Version => new(1, 0, 0);
 	public override bool ForceModded => false;
 
 	public override bool EnabledByDefault => false;

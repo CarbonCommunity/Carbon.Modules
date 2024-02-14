@@ -4,12 +4,13 @@ using System.Linq;
 using Carbon.Base;
 using Facepunch.Rust;
 using Newtonsoft.Json;
+using Oxide.Core;
 using UnityEngine;
 using static BaseEntity;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community
+ * Copyright (c) 2022-2024 Carbon Community
  * Copyright (c) 2023 kasvoton
  * All rights reserved.
  *
@@ -21,6 +22,7 @@ namespace Carbon.Modules;
 public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
 {
 	public override string Name => "GatherManager";
+	public override VersionNumber Version => new(1, 0, 0);
 	public override bool ForceModded => true;
 	public override Type Type => typeof(GatherManagerModule);
 
@@ -114,8 +116,8 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 	private object IOvenSmeltSpeedOverride(BaseOven oven)
 	{
-		if (ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.ShortPrefabName) ||
-			ConfigInstance.OvenSpeedOverrideBlacklist.Contains(oven.GetType().Name))
+		if (Enumerable.Contains(ConfigInstance.OvenSpeedOverrideBlacklist, oven.ShortPrefabName) ||
+			Enumerable.Contains(ConfigInstance.OvenSpeedOverrideBlacklist, oven.GetType().Name))
 		{
 			return ConfigInstance.OvenSpeedBlacklistedOverride;
 		}
@@ -165,7 +167,7 @@ public class GatherManagerConfig
 	[JsonProperty("OvenSpeedOverrideBlacklist (prefab shortname, type)")]
 	public string[] OvenSpeedOverrideBlacklist = new string[]
 	{
-		"lantern.deployed", 
+		"lantern.deployed",
 		"tunalight.deployed",
 		"chineselantern.deployed"
 	};

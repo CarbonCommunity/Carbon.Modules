@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
+using Oxide.Core;
 using UnityEngine;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
- * Copyright (c) 2022 kasvoton
+ * Copyright (c) 2022-2024 Carbon Community
+ * Copyright (c) 2022-2024 kasvoton
  * All rights reserved.
  *
  */
@@ -19,6 +21,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 {
 	public override string Name => "StackManager";
 	public override bool ForceModded => true;
+	public override VersionNumber Version => new(1, 0, 0);
 	public override Type Type => typeof(StackManagerModule);
 
 	public override bool EnabledByDefault => false;
@@ -118,22 +121,23 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 		OnEnableStatus();
 	}
 
-	public override void OnServerInit()
+	public override void OnServerInit(bool initial)
 	{
-		var hasChanged = false;
-		foreach (var item in ItemManager.itemList)
+		if (initial)
 		{
-			if (!DataInstance.Items.ContainsKey(item.shortname))
+			var hasChanged = false;
+
+			foreach (var item in ItemManager.itemList.Where(item => !DataInstance.Items.ContainsKey(item.shortname)))
 			{
 				DataInstance.Items.Add(item.shortname, item.stackable);
 
 				hasChanged = true;
 			}
+
+			if (hasChanged) Save();
 		}
 
-		if (hasChanged) Save();
-
-		base.OnServerInit();
+		base.OnServerInit(initial);
 	}
 }
 

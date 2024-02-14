@@ -6,12 +6,13 @@ using System.IO;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
+using Oxide.Core;
 using ProtoBuf;
 using UnityEngine;
 
 /*
  *
- * Copyright (c) 2022-2023 Carbon Community 
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -22,6 +23,7 @@ namespace Carbon.Modules;
 public partial class MapProtectionModule : CarbonModule<MapProtectionConfig, EmptyModuleData>
 {
 	public override string Name => "MapProtection";
+	public override VersionNumber Version => new(1, 0, 0);
 	public override Type Type => typeof(MapProtectionModule);
 
 	private void IOnWorldSerializationLoad(string fileName, WorldSerialization serialization) { }
