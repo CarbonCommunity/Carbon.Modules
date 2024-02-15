@@ -5,6 +5,7 @@ using Carbon.Core;
 using Carbon.Extensions;
 using ConVar;
 using Newtonsoft.Json;
+using Oxide.Core;
 using UnityEngine;
 
 /*
@@ -20,6 +21,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 {
 	public override string Name => "ModerationTools";
 	public override Type Type => typeof(ModerationToolsModule);
+	public override VersionNumber Version => new(1, 0, 0);
 	public override bool ForceModded => false;
 
 	public override bool EnabledByDefault => false;

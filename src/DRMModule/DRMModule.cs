@@ -9,6 +9,7 @@ using Carbon.Contracts;
 using Carbon.Core;
 using Carbon.Extensions;
 using Newtonsoft.Json;
+using Oxide.Core;
 using Oxide.Core.Libraries;
 
 /*
@@ -24,6 +25,7 @@ namespace Carbon.Modules;
 public class DRMModule : CarbonModule<DRMConfig, EmptyModuleData>
 {
 	public override string Name => "DRM";
+	public override VersionNumber Version => new(1, 0, 0);
 	public override Type Type => typeof(DRMModule);
 
 	public override void Load()
