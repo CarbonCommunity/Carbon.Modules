@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Extensions;
+using Oxide.Core;
 using UnityEngine;
 
 /*
@@ -20,6 +21,7 @@ public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerD
 {
 	public override string Name => "StackManager";
 	public override bool ForceModded => true;
+	public override VersionNumber Version => new(1, 0, 0);
 	public override Type Type => typeof(StackManagerModule);
 
 	public override bool EnabledByDefault => false;

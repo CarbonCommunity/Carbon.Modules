@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Carbon.Base;
+using Oxide.Core;
 using Net = Network.Net;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community 
+ * Copyright (c) 2022-2024 Carbon Community
  * Copyright (c) 2022 Patrette
  * All rights reserved.
  *
@@ -19,6 +20,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 	internal static WhitelistModule Singleton { get; set; }
 
 	public override string Name => "Whitelist";
+	public override VersionNumber Version => new(1, 0, 0);
 	public override Type Type => typeof(WhitelistModule);
 	public override bool ForceModded => false;
 
@@ -49,7 +51,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 		{
 			["en"] = new()
 			{
-				["denied"] = "Not whitelisted",
+				["denied"] = "Not whitelisted"
 			}
 		};
 	}

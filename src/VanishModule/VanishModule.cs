@@ -6,6 +6,7 @@ using Carbon.Components;
 using Facepunch;
 using Network;
 using Newtonsoft.Json;
+using Oxide.Core;
 using Rust.AI;
 using UnityEngine;
 
@@ -22,6 +23,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 {
 	public override string Name => "Vanish";
 	public override Type Type => typeof(VanishModule);
+	public override VersionNumber Version => new(1, 0, 0);
 	public override bool ForceModded => false;
 	public override bool EnabledByDefault => false;
 
