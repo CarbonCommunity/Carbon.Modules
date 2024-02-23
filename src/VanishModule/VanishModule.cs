@@ -111,8 +111,7 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		effectInstance.Init(Effect.Type.Generic, player, 0, Vector3.up, Vector3.zero);
 		effectInstance.pooledstringid = StringPool.Get(effect);
 
-		var netWrite = Net.sv.StartWrite();
-		netWrite.PacketID(Message.Type.Effect);
+		var netWrite = Net.sv.StartWrite(Message.Type.Effect);
 		effectInstance.WriteToStream(netWrite);
 		netWrite.Send(new SendInfo(player.net.connection));
 
