@@ -68,7 +68,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		return null;
 	}
-
 	private object OnPlayerAttack(BasePlayer player, HitInfo hit)
 	{
 		if (hit == null || hit.Initiator == null || hit.HitEntity == null) return null;
@@ -85,14 +84,12 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		return null;
 	}
-
 	private void OnPlayerConnected(BasePlayer player)
 	{
 		if (!_vanishedPlayers.ContainsKey(player.userID)) return;
 
 		DoVanish(player, true);
 	}
-
 	private object CanBradleyApcTarget(BradleyAPC apc, BasePlayer player)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID))

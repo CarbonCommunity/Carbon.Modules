@@ -19,6 +19,7 @@ using Oxide.Core.Libraries;
  *
  */
 
+/*
 namespace Carbon.Modules;
 #pragma warning disable IDE0051
 
@@ -357,3 +358,5 @@ public class DRMConfig
 		}
 	};
 }
+
+*/
