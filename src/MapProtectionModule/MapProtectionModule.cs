@@ -17,6 +17,7 @@ using UnityEngine;
  *
  */
 
+/*
 namespace Carbon.Modules;
 #pragma warning disable IDE0051
 
@@ -210,3 +211,5 @@ public class MapProtectionConfig
 {
 	public string Key { get; set; }
 }
+
+*/
