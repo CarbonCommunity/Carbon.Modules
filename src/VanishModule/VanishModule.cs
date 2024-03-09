@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Carbon.Modules;
 
-public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
+public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 {
 	public override string Name => "Vanish";
 	public override Type Type => typeof(VanishModule);
@@ -68,7 +68,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		return null;
 	}
-
 	private object OnPlayerAttack(BasePlayer player, HitInfo hit)
 	{
 		if (hit == null || hit.Initiator == null || hit.HitEntity == null) return null;
@@ -85,14 +84,12 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		return null;
 	}
-
 	private void OnPlayerConnected(BasePlayer player)
 	{
 		if (!_vanishedPlayers.ContainsKey(player.userID)) return;
 
 		DoVanish(player, true);
 	}
-
 	private object CanBradleyApcTarget(BradleyAPC apc, BasePlayer player)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID))
