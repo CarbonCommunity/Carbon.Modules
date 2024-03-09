@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Carbon.Modules;
 
-public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
+public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 {
 	public override string Name => "Vanish";
 	public override Type Type => typeof(VanishModule);
