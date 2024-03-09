@@ -57,16 +57,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		_vanishedPlayers.Clear();
 	}
-
-	[ChatCommand("breakit")]
-	private void BreakIt(BasePlayer player)
-	{
-		player.ChatMessage("breaking it");
-
-		player = null;
-		player.ChatMessage(string.Empty);
-	}
-
+	
 	private object CanUseLockedEntity(BasePlayer player, BaseLock @lock)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID)

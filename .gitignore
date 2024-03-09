@@ -17,3 +17,6 @@
 # misc
 .[Rr]elease/
 .[Rr]edist/
+
+# Code gen
+*-Generated.cs
