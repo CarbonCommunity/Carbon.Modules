@@ -57,7 +57,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		_vanishedPlayers.Clear();
 	}
-	
+
 	private object CanUseLockedEntity(BasePlayer player, BaseLock @lock)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID)
