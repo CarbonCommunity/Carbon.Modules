@@ -23,27 +23,33 @@ public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, Empty
 	public override Type Type => typeof(OptimisationsModule);
 	public override bool EnabledByDefault => false;
 
-	private void ae0577348a5140ea9aa861cd71c31e7c()
-	{
-		// FIXME:
-		// We should be able to us Init() to subscribe to hooks like so
-		// Subscribe("ae0577348a5140ea9aa861cd71c31e7c");
-	}
+	internal int visibilityRadiusFarOverrideOriginal;
+	internal int visibilityRadiusNearOverrideOriginal;
+
+	private void CircularNetworkDistance() { }
 
 	public override void OnEnabled(bool initialized)
 	{
+		if (initialized)
+		{
+			visibilityRadiusFarOverrideOriginal = ConVar.Net.visibilityRadiusFarOverride;
+			visibilityRadiusNearOverrideOriginal = ConVar.Net.visibilityRadiusNearOverride;
+		}
+
 		if (ConVar.Net.visibilityRadiusFarOverride == -1)
 			ConVar.Net.visibilityRadiusFarOverride = 6;
 
 		if (ConVar.Net.visibilityRadiusNearOverride == -1)
 			ConVar.Net.visibilityRadiusNearOverride = 4;
 
-		Subscribe("ae0577348a5140ea9aa861cd71c31e7c");
+		base.OnEnabled(initialized);
 	}
 	public override void OnDisabled(bool initialized)
 	{
-		ConVar.Net.visibilityRadiusFarOverride = -1;
-		ConVar.Net.visibilityRadiusNearOverride = -1;
+		ConVar.Net.visibilityRadiusFarOverride = visibilityRadiusFarOverrideOriginal;
+		ConVar.Net.visibilityRadiusNearOverride = visibilityRadiusNearOverrideOriginal;
+
+		base.OnDisabled(initialized);
 	}
 
 	// hardcoded values because this is probably fastest

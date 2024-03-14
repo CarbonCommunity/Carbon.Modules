@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Carbon.Modules;
 
-public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
+public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 {
 	public override string Name => "Vanish";
 	public override Type Type => typeof(VanishModule);
@@ -68,7 +68,6 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		return null;
 	}
-
 	private object OnPlayerAttack(BasePlayer player, HitInfo hit)
 	{
 		if (hit == null || hit.Initiator == null || hit.HitEntity == null) return null;
@@ -85,14 +84,12 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		return null;
 	}
-
 	private void OnPlayerConnected(BasePlayer player)
 	{
 		if (!_vanishedPlayers.ContainsKey(player.userID)) return;
 
 		DoVanish(player, true);
 	}
-
 	private object CanBradleyApcTarget(BradleyAPC apc, BasePlayer player)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID))
@@ -111,7 +108,8 @@ public class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		effectInstance.Init(Effect.Type.Generic, player, 0, Vector3.up, Vector3.zero);
 		effectInstance.pooledstringid = StringPool.Get(effect);
 
-		var netWrite = Net.sv.StartWrite(Message.Type.Effect);
+		var netWrite = Net.sv.StartWrite();
+		netWrite.PacketID(Message.Type.Effect);
 		effectInstance.WriteToStream(netWrite);
 		netWrite.Send(new SendInfo(player.net.connection));
 
