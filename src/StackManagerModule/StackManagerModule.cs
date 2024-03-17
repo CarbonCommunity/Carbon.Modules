@@ -17,7 +17,7 @@ using UnityEngine;
 namespace Carbon.Modules;
 #pragma warning disable IDE0051
 
-public class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerData>
+public partial class StackManagerModule : CarbonModule<StackManagerConfig, StackManagerData>
 {
 	public override string Name => "StackManager";
 	public override bool ForceModded => true;
