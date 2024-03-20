@@ -30,8 +30,8 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 	{
 		base.OnEnabled(initialized);
 
-		RegisterPermission(ConfigInstance.Moderation.Cmod1Permission);
-		RegisterPermission(ConfigInstance.Moderation.Cmod2Permission);
+		Permissions.RegisterPermission(ConfigInstance.Moderation.Cmod1Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.Moderation.Cmod2Permission, this);
 
 		var cmod1Permissions = new string[] { ConfigInstance.Moderation.Cmod1Permission };
 		var cmod2Permissions = new string[] { ConfigInstance.Moderation.Cmod2Permission };
@@ -45,7 +45,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 	private object INoteAdminHack(BasePlayer player)
 	{
-		if (HasPermission(player, ConfigInstance.Moderation.Cmod1Permission))
+		if (Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Moderation.Cmod1Permission))
 		{
 			return false;
 		}
