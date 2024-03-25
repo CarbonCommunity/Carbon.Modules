@@ -41,8 +41,8 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		base.OnEnabled(initialized);
 
-		RegisterPermission(ConfigInstance.VanishPermission);
-		RegisterPermission(ConfigInstance.VanishUnlockWhileVanishedPermission);
+		Permissions.RegisterPermission(ConfigInstance.VanishPermission, this);
+		Permissions.RegisterPermission(ConfigInstance.VanishUnlockWhileVanishedPermission, this);
 
 		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission });
 	}
@@ -61,7 +61,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	private object CanUseLockedEntity(BasePlayer player, BaseLock @lock)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID)
-			&& HasPermission(player.UserIDString, ConfigInstance.VanishUnlockWhileVanishedPermission))
+			&& Permissions.UserHasPermission(player.UserIDString, ConfigInstance.VanishUnlockWhileVanishedPermission))
 		{
 			return true;
 		}
