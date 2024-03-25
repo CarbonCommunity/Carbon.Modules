@@ -35,8 +35,8 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 		Subscribe("CanUserLogin");
 
-		UnregisterPermissions();
-		RegisterPermission(ConfigInstance.BypassPermission);
+		Permissions.UnregisterPermissions(this);
+		Permissions.RegisterPermission(ConfigInstance.BypassPermission, this);
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -77,8 +77,8 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 	public bool CanBypass(string playerId)
 	{
-		return HasPermission(playerId.ToString(), ConfigInstance.BypassPermission)
-			|| (!string.IsNullOrEmpty(ConfigInstance.BypassGroup) && HasGroup(playerId.ToString(), ConfigInstance.BypassGroup));
+		return Permissions.UserHasPermission(playerId.ToString(), ConfigInstance.BypassPermission)
+			|| (!string.IsNullOrEmpty(ConfigInstance.BypassGroup) && Permissions.UserHasGroup(playerId, ConfigInstance.BypassGroup));
 	}
 }
 
