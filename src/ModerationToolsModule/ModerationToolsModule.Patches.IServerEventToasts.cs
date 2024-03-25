@@ -2,7 +2,7 @@
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community 
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -19,7 +19,7 @@ public partial class ModerationToolsModule
 	{
 		public static bool Prefix(GameTip.Styles style, Translate.Phrase phrase, string[] arguments)
 		{
-			if (HookCaller.CallStaticHook(318331221, style) != null)
+			if (Singleton.IServerEventToasts(style) != null)
 			{
 				return false;
 			}
