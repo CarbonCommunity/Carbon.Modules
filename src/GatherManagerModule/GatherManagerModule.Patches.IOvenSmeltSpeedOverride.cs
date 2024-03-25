@@ -3,7 +3,7 @@ using API.Hooks;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community 
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -20,7 +20,7 @@ public partial class GatherManagerModule
 	{
 		public static bool Prefix(BaseOven __instance)
 		{
-			if (HookCaller.CallStaticHook(4131997659, __instance) is float hookResult)
+			if (Singleton.IOvenSmeltSpeedOverride(__instance) is float hookResult)
 			{
 				if (__instance.FindBurnable() == null && !__instance.CanRunWithNoFuel)
 				{

@@ -19,12 +19,21 @@ namespace Carbon.Modules;
 
 public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig, EmptyModuleData>
 {
+	public static ModerationToolsModule Singleton { get; internal set; }
+
 	public override string Name => "ModerationTools";
 	public override Type Type => typeof(ModerationToolsModule);
 	public override VersionNumber Version => new(1, 0, 0);
 	public override bool ForceModded => false;
 
 	public override bool EnabledByDefault => false;
+
+	public override void Init()
+	{
+		base.Init();
+
+		Singleton = this;
+	}
 
 	public override void OnEnabled(bool initialized)
 	{
