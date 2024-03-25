@@ -21,6 +21,8 @@ namespace Carbon.Modules;
 
 public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, EmptyModuleData>
 {
+	public static GatherManagerModule Singleton { get; internal set; }
+
 	public override string Name => "GatherManager";
 	public override VersionNumber Version => new(1, 0, 0);
 	public override bool ForceModded => true;
@@ -29,6 +31,13 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 	public override bool EnabledByDefault => false;
 
 	internal Item _processedItem;
+
+	public override void Init()
+	{
+		base.Init();
+
+		Singleton = this;
+	}
 
 	#region Hooks
 
@@ -114,15 +123,15 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 		item.amount = GetAmount(item.info, item.amount, 1);
 	}
 
-	private object IOvenSmeltSpeedOverride(BaseOven oven)
+	public object IOvenSmeltSpeedOverride(BaseOven oven)
 	{
-		if (Enumerable.Contains(ConfigInstance.OvenSpeedOverrideBlacklist, oven.ShortPrefabName) ||
-			Enumerable.Contains(ConfigInstance.OvenSpeedOverrideBlacklist, oven.GetType().Name))
+		if (Enumerable.Contains(Singleton.ConfigInstance.OvenSpeedOverrideBlacklist, oven.ShortPrefabName) ||
+			Enumerable.Contains(Singleton.ConfigInstance.OvenSpeedOverrideBlacklist, oven.GetType().Name))
 		{
-			return ConfigInstance.OvenSpeedBlacklistedOverride;
+			return Singleton.ConfigInstance.OvenSpeedBlacklistedOverride;
 		}
 
-		return ConfigInstance.OvenSpeedOverride;
+		return Singleton.ConfigInstance.OvenSpeedOverride;
 	}
 
 	#endregion
