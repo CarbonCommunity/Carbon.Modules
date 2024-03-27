@@ -2,7 +2,7 @@
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community 
+ * Copyright (c) 2022-2024 Carbon Community
  * All rights reserved.
  *
  */
@@ -19,7 +19,7 @@ public partial class ModerationToolsModule
 	{
 		public static bool Prefix(BasePlayer ply)
 		{
-			if (HookCaller.CallStaticHook(3335207430, ply) != null)
+			if (Singleton.INoteAdminHack(ply) != null)
 			{
 				return false;
 			}
