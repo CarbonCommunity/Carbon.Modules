@@ -68,7 +68,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 		}
 
 		ConsoleNetwork.SendClientCommand(connection, $"echo {GetPhrase("denied", id)}");
-		Community.Runtime.CorePlugin.NextTick(() => ConnectionAuth.Reject(connection, GetPhrase("denied", id), null));
+		Community.Runtime.Core.NextTick(() => ConnectionAuth.Reject(connection, GetPhrase("denied", id), null));
 
 		return null;
 	}
