@@ -44,12 +44,12 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 		var cmod1Permissions = new string[] { ConfigInstance.Moderation.Cmod1Permission };
 		var cmod2Permissions = new string[] { ConfigInstance.Moderation.Cmod2Permission };
-		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.Moderation.CmodCommand, this, nameof(ToggleCadmin), permissions: cmod1Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.mute", this, nameof(Mute), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.unmute", this, nameof(Unmute), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.mutelist", this, nameof(MuteList), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.kick", this, nameof(Kick), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
-		Community.Runtime.CorePlugin.cmd.AddConsoleCommand("cmod.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.Core.cmd.AddCovalenceCommand(ConfigInstance.Moderation.CmodCommand, this, nameof(ToggleCadmin), permissions: cmod1Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown);
+		Community.Runtime.Core.cmd.AddConsoleCommand("cmod.mute", this, nameof(Mute), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.Core.cmd.AddConsoleCommand("cmod.unmute", this, nameof(Unmute), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.Core.cmd.AddConsoleCommand("cmod.mutelist", this, nameof(MuteList), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.Core.cmd.AddConsoleCommand("cmod.kick", this, nameof(Kick), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
+		Community.Runtime.Core.cmd.AddConsoleCommand("cmod.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
 	}
 
 	private object INoteAdminHack(BasePlayer player)
@@ -192,7 +192,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 #if MINIMAL
 		if (!ConfigInstance.NoGiveNotices || !(name == "SERVER" && message.Contains("gave"))) return null;
 #else
-		var core = Community.Runtime.CorePlugin.To<CorePlugin>();
+		var core = Community.Runtime.Core.To<CorePlugin>();
 		var defaultName = core.DefaultServerChatName != "-1" ? core.DefaultServerChatName : "SERVER";
 
 		if (!ConfigInstance.NoGiveNotices || !(name == defaultName && message.Contains("gave"))) return null;
