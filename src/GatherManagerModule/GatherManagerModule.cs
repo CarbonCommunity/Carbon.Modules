@@ -179,14 +179,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 public class GatherManagerConfig
 {
-	[JsonProperty("OvenSpeedOverrideBlacklist (prefab shortname, type)")]
-	public string[] OvenSpeedOverrideBlacklist =
-	[
-		"lantern.deployed",
-		"tunalight.deployed",
-		"chineselantern.deployed"
-	];
-
 	public Dictionary<string, float> Quarry = new()
 	{
 		["*"] = 1f
