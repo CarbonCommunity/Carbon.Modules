@@ -41,10 +41,12 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		base.OnEnabled(initialized);
 
+		if (!initialized) return;
+
 		Permissions.RegisterPermission(ConfigInstance.VanishPermission, this);
 		Permissions.RegisterPermission(ConfigInstance.VanishUnlockWhileVanishedPermission, this);
 
-		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission });
+		Community.Runtime.Core.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission });
 	}
 	public override void OnDisabled(bool initialized)
 	{
