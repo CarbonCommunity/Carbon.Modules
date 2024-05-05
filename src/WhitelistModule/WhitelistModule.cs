@@ -35,6 +35,8 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 		Subscribe("CanUserLogin");
 
+		if (!initialized) return;
+
 		Permissions.UnregisterPermissions(this);
 		Permissions.RegisterPermission(ConfigInstance.BypassPermission, this);
 	}

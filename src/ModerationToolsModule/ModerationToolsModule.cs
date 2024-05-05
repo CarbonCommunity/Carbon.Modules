@@ -39,6 +39,8 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 	{
 		base.OnEnabled(initialized);
 
+		if (!initialized) return;
+
 		Permissions.RegisterPermission(ConfigInstance.Moderation.Cmod1Permission, this);
 		Permissions.RegisterPermission(ConfigInstance.Moderation.Cmod2Permission, this);
 

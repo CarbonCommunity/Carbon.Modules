@@ -41,6 +41,8 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		base.OnEnabled(initialized);
 
+		if (!initialized) return;
+
 		Permissions.RegisterPermission(ConfigInstance.VanishPermission, this);
 		Permissions.RegisterPermission(ConfigInstance.VanishUnlockWhileVanishedPermission, this);
 
