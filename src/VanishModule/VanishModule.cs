@@ -222,7 +222,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		using var helis = Entities.Get<PatrolHelicopter>();
 		helis.Each(heli =>
 		{
-			if (heli.myAI.strafe_target != player) return;
+			if (heli.myAI == null || heli.myAI.strafe_target != player) return;
 			Logger.Warn($"Patrol Helicopter at {heli.transform.position} ended player strafe for '{player.Connection}'");
 
 			heli.myAI.State_OrbitStrafe_Leave();
