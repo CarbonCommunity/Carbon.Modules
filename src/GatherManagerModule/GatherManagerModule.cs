@@ -30,6 +30,14 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 	public override bool EnabledByDefault => false;
 
+	public enum KindTypes
+	{
+		Pickup = 0,
+		Gather = 1,
+		Quarry = 2,
+		Excavator = 3
+	}
+
 	internal Item _processedItem;
 
 	public override void Init()
@@ -94,66 +102,67 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 	}
 	private void OnExcavatorGather(ExcavatorArm arm, Item item)
 	{
-		item.amount = GetAmount(item.info, item.amount, 3);
+		if (_processedItem == item) return;
+		_processedItem = item;
+
+		item.amount = GetAmount(item.info, item.amount, KindTypes.Excavator);
 	}
 	private void OnQuarryGather(MiningQuarry quarry, Item item)
 	{
-		item.amount = GetAmount(item.info, item.amount, 3);
+		if (_processedItem == item) return;
+		_processedItem = item;
+
+		item.amount = GetAmount(item.info, item.amount, KindTypes.Quarry);
 	}
 	private void OnGrowableGathered(GrowableEntity entity, Item item, BasePlayer player)
 	{
-		item.amount = GetAmount(item.info, item.amount, 1);
+		if (_processedItem == item) return;
+		_processedItem = item;
+
+		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
 	private void OnDispenserBonus(ResourceDispenser dispenser, BasePlayer player, Item item)
 	{
-		item.amount = GetAmount(item.info, item.amount, 1);
+		if (_processedItem == item) return;
+		_processedItem = item;
+
+		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
 	private void OnDispenserGather(ResourceDispenser dispenser, BasePlayer player, Item item)
 	{
 		if (_processedItem == item) return;
 		_processedItem = item;
 
-		item.amount = GetAmount(item.info, item.amount, 1);
+		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
 	private void OnDispenserGather(ResourceDispenser dispenser, BaseEntity entity, Item item)
 	{
 		if (_processedItem == item) return;
 		_processedItem = item;
 
-		item.amount = GetAmount(item.info, item.amount, 1);
-	}
-
-	public object IOvenSmeltSpeedOverride(BaseOven oven)
-	{
-		if (Enumerable.Contains(Singleton.ConfigInstance.OvenSpeedOverrideBlacklist, oven.ShortPrefabName) ||
-			Enumerable.Contains(Singleton.ConfigInstance.OvenSpeedOverrideBlacklist, oven.GetType().Name))
-		{
-			return Singleton.ConfigInstance.OvenSpeedBlacklistedOverride;
-		}
-
-		return Singleton.ConfigInstance.OvenSpeedOverride;
+		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
 
 	#endregion
 
 	#region Helpers
 
-	internal Item ByID(int itemID, int amount, ulong skin, int kind)
+	internal Item ByID(int itemID, int amount, ulong skin, KindTypes kind)
 	{
 		return ByDefinition(ItemManager.FindItemDefinition(itemID), amount, skin, kind);
 	}
-	internal Item ByDefinition(ItemDefinition itemDefinition, int amount, ulong skin, int kind)
+	internal Item ByDefinition(ItemDefinition itemDefinition, int amount, ulong skin, KindTypes kind)
 	{
 		return ItemManager.Create(itemDefinition, GetAmount(itemDefinition, amount, kind), skin);
 	}
-	internal int GetAmount(ItemDefinition itemDefinition, int amount, int kind)
+	internal int GetAmount(ItemDefinition itemDefinition, int amount, KindTypes kind)
 	{
 		var dictionary = kind switch
 		{
-			0 => ConfigInstance.Pickup,
-			1 => ConfigInstance.Gather,
-			2 => ConfigInstance.Quarry,
-			3 => ConfigInstance.Excavator,
+			KindTypes.Pickup => ConfigInstance.Pickup,
+			KindTypes.Gather => ConfigInstance.Gather,
+			KindTypes.Quarry => ConfigInstance.Quarry,
+			KindTypes.Excavator => ConfigInstance.Excavator,
 			_ => throw new Exception("Invalid GetAmount kind"),
 		};
 
@@ -170,17 +179,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 public class GatherManagerConfig
 {
-	public float OvenSpeedOverride = 0.5f;
-	public float OvenSpeedBlacklistedOverride = 0.5f;
-
-	[JsonProperty("OvenSpeedOverrideBlacklist (prefab shortname, type)")]
-	public string[] OvenSpeedOverrideBlacklist = new string[]
-	{
-		"lantern.deployed",
-		"tunalight.deployed",
-		"chineselantern.deployed"
-	};
-
 	public Dictionary<string, float> Quarry = new()
 	{
 		["*"] = 1f
