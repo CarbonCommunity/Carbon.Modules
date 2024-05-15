@@ -41,10 +41,12 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		base.OnEnabled(initialized);
 
+		if (!initialized) return;
+
 		Permissions.RegisterPermission(ConfigInstance.VanishPermission, this);
 		Permissions.RegisterPermission(ConfigInstance.VanishUnlockWhileVanishedPermission, this);
 
-		Community.Runtime.CorePlugin.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission });
+		Community.Runtime.Core.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission });
 	}
 	public override void OnDisabled(bool initialized)
 	{
@@ -120,6 +122,8 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		if (wants)
 		{
+			_clearTriggers(player);
+
 			player.PauseFlyHackDetection();
 			AntiHack.ShouldIgnore(player);
 
@@ -132,7 +136,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			var temp = Pool.GetList<Connection>();
 			temp.AddRange(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player));
 			player.OnNetworkSubscribersLeave(temp);
-			player.ForceUpdateTriggers(exit: true, invoke: true);
+
 			Pool.FreeList(ref temp);
 
 			SimpleAIMemory.AddIgnorePlayer(player);
@@ -166,7 +170,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.drownEffect = _drownEffect;
 			player.fallDamageEffect = _fallDamageEffect;
 
-			player.ForceUpdateTriggers(enter: true, exit: true, invoke: true);
+			player.ForceUpdateTriggers(enter: true, exit: false, invoke: true);
 
 			if (ConfigInstance.GutshotScreamOnUnvanish)
 			{
@@ -202,6 +206,28 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		}
 
 		DoVanish(player, wants);
+	}
+
+	internal void _clearTriggers(BasePlayer player)
+	{
+		if (player.triggers != null && player.triggers.Count > 0)
+		{
+			foreach (var trigger in player.triggers)
+			{
+				Logger.Warn($"Player '{player.Connection}' left {trigger.name} ({trigger.GetType()})");
+				trigger.OnEntityLeave(player);
+			}
+		}
+
+		using var helis = Entities.Get<PatrolHelicopter>();
+		helis.Each(heli =>
+		{
+			if (heli.myAI == null || heli.myAI.strafe_target != player) return;
+			Logger.Warn($"Patrol Helicopter at {heli.transform.position} ended player strafe for '{player.Connection}'");
+
+			heli.myAI.State_OrbitStrafe_Leave();
+			heli.myAI.State_Strafe_Leave();
+		});
 	}
 
 	internal void _drawUI(BasePlayer player)
