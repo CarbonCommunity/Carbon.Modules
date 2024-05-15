@@ -218,16 +218,6 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 				trigger.OnEntityLeave(player);
 			}
 		}
-
-		using var helis = Entities.Get<PatrolHelicopter>();
-		helis.Each(heli =>
-		{
-			if (heli.myAI == null || heli.myAI.strafe_target != player) return;
-			Logger.Warn($"Patrol Helicopter at {heli.transform.position} ended player strafe for '{player.Connection}'");
-
-			heli.myAI.State_OrbitStrafe_Leave();
-			heli.myAI.State_Strafe_Leave();
-		});
 	}
 
 	internal void _drawUI(BasePlayer player)
