@@ -35,6 +35,15 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		Singleton = this;
 	}
 
+	public override void OnServerInit(bool initial)
+	{
+		base.OnServerInit(initial);
+
+		if (!initial) return;
+
+		OnEnabled(true);
+	}
+
 	public override void OnEnabled(bool initialized)
 	{
 		base.OnEnabled(initialized);
