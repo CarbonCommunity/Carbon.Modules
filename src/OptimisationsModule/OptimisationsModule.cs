@@ -28,6 +28,14 @@ public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, Empty
 
 	private void CircularNetworkDistance() { }
 
+	public override void OnServerInit(bool initial)
+	{
+		base.OnServerInit(initial);
+
+		if (!initial) return;
+
+		OnEnabled(true);
+	}
 	public override void OnEnabled(bool initialized)
 	{
 		if (initialized)
