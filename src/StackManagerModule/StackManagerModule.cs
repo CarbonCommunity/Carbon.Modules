@@ -123,21 +123,22 @@ public partial class StackManagerModule : CarbonModule<StackManagerConfig, Stack
 
 	public override void OnServerInit(bool initial)
 	{
-		if (initial)
+		base.OnServerInit(initial);
+
+		if (!initial) return;
+
+		var hasChanged = false;
+
+		foreach (var item in ItemManager.itemList.Where(item => !DataInstance.Items.ContainsKey(item.shortname)))
 		{
-			var hasChanged = false;
+			DataInstance.Items.Add(item.shortname, item.stackable);
 
-			foreach (var item in ItemManager.itemList.Where(item => !DataInstance.Items.ContainsKey(item.shortname)))
-			{
-				DataInstance.Items.Add(item.shortname, item.stackable);
-
-				hasChanged = true;
-			}
-
-			if (hasChanged) Save();
+			hasChanged = true;
 		}
 
-		base.OnServerInit(initial);
+		if (hasChanged) Save();
+
+		OnEnabled(true);
 	}
 }
 
