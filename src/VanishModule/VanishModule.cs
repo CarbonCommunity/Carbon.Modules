@@ -37,6 +37,15 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	internal readonly string _whooshEffect = "assets/prefabs/npc/patrol helicopter/effects/rocket_fire.prefab";
 	internal readonly string _gutshotEffect = "assets/bundled/prefabs/fx/player/gutshot_scream.prefab";
 
+	public override void OnServerInit(bool initial)
+	{
+		base.OnServerInit(initial);
+
+		if (!initial) return;
+
+		OnEnabled(true);
+	}
+
 	public override void OnEnabled(bool initialized)
 	{
 		base.OnEnabled(initialized);
