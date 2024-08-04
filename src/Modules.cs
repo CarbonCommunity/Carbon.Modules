@@ -1,13 +1,6 @@
 ﻿using System;
 using API.Assembly;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Modules;
 
 public class Initializer : IModulePackage
