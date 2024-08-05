@@ -5,14 +5,6 @@ using Carbon.Base;
 using Oxide.Core;
 using Net = Network.Net;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * Copyright (c) 2022 Patrette
- * All rights reserved.
- *
- */
-
 namespace Carbon.Modules;
 
 public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModuleData>
@@ -28,7 +20,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 	{
 		Singleton = this;
 	}
-	
+
 	public override void OnServerInit(bool initial)
 	{
 		base.OnServerInit(initial);
@@ -79,7 +71,6 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 		ConsoleNetwork.SendClientCommand(connection, $"echo {GetPhrase("denied", id)}");
 		Community.Runtime.Core.NextTick(() => ConnectionAuth.Reject(connection, GetPhrase("denied", id), null));
-
 		return null;
 	}
 
@@ -87,8 +78,8 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 	public bool CanBypass(string playerId)
 	{
-		return Permissions.UserHasPermission(playerId.ToString(), ConfigInstance.BypassPermission)
-			|| (!string.IsNullOrEmpty(ConfigInstance.BypassGroup) && Permissions.UserHasGroup(playerId, ConfigInstance.BypassGroup));
+		return Permissions.UserHasPermission(playerId, ConfigInstance.BypassPermission) ||
+		       (!string.IsNullOrEmpty(ConfigInstance.BypassGroup) && Permissions.UserHasGroup(playerId, ConfigInstance.BypassGroup));
 	}
 }
 

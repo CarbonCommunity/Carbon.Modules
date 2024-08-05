@@ -10,9 +10,8 @@ using static BaseEntity;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community
- * Copyright (c) 2023 kasvoton
- * All rights reserved.
+ * Copyright (c) 2022 kasvoton, under the GNU v3 license rights
+ * Copyright (c) 2022-2024 Carbon Community, under the GNU v3 license rights
  *
  */
 
