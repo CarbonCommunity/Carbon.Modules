@@ -8,13 +8,6 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using UnityEngine;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Modules;
 
 public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig, EmptyModuleData>

@@ -10,13 +10,6 @@ using Oxide.Core;
 using Rust.AI;
 using UnityEngine;
 
-/*
- *
- * Copyright (c) 2022-2024 Carbon Community
- * All rights reserved.
- *
- */
-
 namespace Carbon.Modules;
 
 public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
