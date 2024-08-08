@@ -7,9 +7,8 @@ using Oxide.Core;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community
- * Copyright (c) 2022 Vice <https://codefling.com/vice>
- * All rights reserved.
+ * Copyright (c) 2022 Vice <https://codefling.com/vice>, under the GNU v3 license rights
+ * Copyright (c) 2022-2024 Carbon Community, under the GNU v3 license rights
  *
  */
 
