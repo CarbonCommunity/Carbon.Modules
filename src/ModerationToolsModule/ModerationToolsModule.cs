@@ -65,12 +65,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 		return null;
 	}
-	private object IServerEventToasts(GameTip.Styles style)
-	{
-		if (ConfigInstance.ShowServerEventToasts) return null;
-
-		return false;
-	}
 	private object CanUnlockTechTreeNode()
 	{
 		if (ConfigInstance.NoTechTreeUnlock) return false;
@@ -226,9 +220,6 @@ public class ModerationToolsConfig
 
 	[JsonProperty("No TechTree unlock")]
 	public bool NoTechTreeUnlock = false;
-
-	[JsonProperty("Show server event toasts")]
-	public bool ShowServerEventToasts = true;
 
 	public ModerationSettings Moderation = new();
 
