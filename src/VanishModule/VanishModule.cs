@@ -135,11 +135,11 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player._limitedNetworking = true;
 			player.DisablePlayerCollider();
 
-			var temp = Pool.GetList<Connection>();
+			var temp = Pool.Get<List<Connection>>();
 			temp.AddRange(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player));
 			player.OnNetworkSubscribersLeave(temp);
 
-			Pool.FreeList(ref temp);
+			Pool.FreeUnmanaged(ref temp);
 
 			SimpleAIMemory.AddIgnorePlayer(player);
 
