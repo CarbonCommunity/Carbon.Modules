@@ -141,6 +141,13 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
+	private void OnFishCatch(Item item)
+	{
+		if (_processedItem == item) return;
+		_processedItem = item;
+
+		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
+	}
 
 	#endregion
 
