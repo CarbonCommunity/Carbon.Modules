@@ -190,8 +190,7 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 #if MINIMAL
 		if (!ConfigInstance.NoGiveNotices || !(name == "SERVER" && message.Contains("gave"))) return null;
 #else
-		var core = Community.Runtime.Core.To<CorePlugin>();
-		var defaultName = core.DefaultServerChatName != "-1" ? core.DefaultServerChatName : "SERVER";
+		var defaultName = Community.Runtime.Core.DefaultServerChatName != "-1" ? Community.Runtime.Core.DefaultServerChatName : "SERVER";
 
 		if (!ConfigInstance.NoGiveNotices || !(name == defaultName && message.Contains("gave"))) return null;
 #endif
