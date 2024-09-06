@@ -67,7 +67,10 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 	}
 	private object CanUnlockTechTreeNode()
 	{
-		if (ConfigInstance.NoTechTreeUnlock) return false;
+		if (ConfigInstance.NoTechTreeUnlock)
+		{
+			return false;
+		}
 
 		return null;
 	}
