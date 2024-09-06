@@ -8,6 +8,7 @@ using Oxide.Core;
 /*
  *
  * Copyright (c) 2022 Vice <https://codefling.com/vice>, under the GNU v3 license rights
+ * Copyright (c) 2024 Cobalt Studios, under the GNU v3 license rights
  * Copyright (c) 2022-2024 Carbon Community, under the GNU v3 license rights
  *
  */
@@ -59,29 +60,15 @@ public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, Empty
 		base.OnDisabled(initialized);
 	}
 
-	// hardcoded values because this is probably fastest
-	private static readonly List<int> EightCircle = new()
-	{ 2, 4, 6, 6, 7, 7, 8, 8, 8, 8, 8, 7, 7, 6, 6, 4, 2 };
+	private static readonly List<int> EightCircle = [2, 4, 6, 6, 7, 7, 8, 8, 8, 8, 8, 7, 7, 6, 6, 4, 2];
+	private static readonly List<int> SevenCircle = [2, 4, 5, 6, 6, 7, 7, 7, 7, 7, 6, 6, 5, 4, 2];
+	private static readonly List<int> SixCircle = [2, 4, 5, 5, 6, 6, 6, 6, 6, 5, 5, 4, 2];
+	private static readonly List<int> FiveCircle = [2, 3, 4, 5, 5, 5, 5, 5, 4, 3, 2];
+	private static readonly List<int> FourCircle = [2, 3, 4, 4, 4, 4, 4, 3, 2];
+	private static readonly List<int> ThreeCircle = [1, 2, 3, 3, 3, 2, 1];
+	private static readonly List<int> TwoCircle = [1, 2, 2, 2, 1];
 
-	private static readonly List<int> SevenCircle = new()
-	{ 2, 4, 5, 6, 6, 7, 7, 7, 7, 7, 6, 6, 5, 4, 2 };
-
-	private static readonly List<int> SixCircle = new()
-	{ 2, 4, 5, 5, 6, 6, 6, 6, 6, 5, 5, 4, 2 };
-
-	private static readonly List<int> FiveCircle = new()
-	{ 2, 3, 4, 5, 5, 5, 5, 5, 4, 3, 2 };
-
-	private static readonly List<int> FourCircle = new()
-	{ 2, 3, 4, 4, 4, 4, 4, 3, 2 };
-
-	private static readonly List<int> ThreeCircle = new()
-	{ 1, 2, 3, 3, 3, 2, 1 };
-
-	private static readonly List<int> TwoCircle = new()
-	{ 1, 2, 2, 2, 1 };
-
-	private static List<int> GetCircleSizeLookup(int radius)
+	static List<int> GetCircleSizeLookup(int radius)
 	{
 		return radius switch
 		{
@@ -96,57 +83,66 @@ public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, Empty
 		};
 	}
 
-	public static bool GetVisibleFromCircle(NetworkVisibilityGrid grid, Group group, List<Group> groups, int radius)
+	static bool GetVisibleFromCircle(NetworkVisibilityGrid grid, Group group, List<Group> groups, int radius)
 	{
-		List<int> lookup = GetCircleSizeLookup(radius);
+		List<int>? lookup = GetCircleSizeLookup(radius);
 		if (lookup == null)
-			return true; // this should be a NotImplementedException but y'all are retarded
+			return true;
 
 		// Global netgroup
 		groups.Add(Net.sv.visibility.Get(0U));
-
-		if ((int)group.ID < grid.startID)
+		if (group.restricted)
+		{
+			groups.Add(group);
+			return false;
+		}
+		int id = (int)group.ID;
+		if (id < grid.startID)
 			return false;
 
-		int layer = GetGroupLayer(grid, (int)group.ID);
-		int num = (int)group.ID - grid.startID;
-
-		int x = num / grid.cellCount;
-		int y = num % grid.cellCount;
+		ValueTuple<int, int, int> valueTuple = DeconstructGroupId(grid, id);
+		int item1 = valueTuple.Item1;
+		int item2 = valueTuple.Item2;
+		int item3 = valueTuple.Item3;
 
 		for (int deltaY = -radius; deltaY <= radius; deltaY++)
 		{
 			int bounds = lookup[deltaY + radius];
 			for (int deltaX = -bounds; deltaX <= bounds; deltaX++)
-				AddLayers(grid, groups, x + deltaX, y + deltaY, GetGroupLayer(grid, layer));
+			{
+				AddLayers(grid, groups, item1 + deltaX, item2 + deltaY, item3);
+			}
 		}
-
 		return false;
 	}
 
-	private static void AddLayers(NetworkVisibilityGrid grid, List<Group> groups, int groupX, int groupY, int groupLayer)
+	private static ValueTuple<int, int, int> DeconstructGroupId(NetworkVisibilityGrid grid, int groupId)
+	{
+		groupId -= grid.startID;
+		var num2 = Math.DivRem(groupId, grid.cellCount * grid.cellCount, out var num);
+		return new ValueTuple<int, int, int>(Math.DivRem(num, grid.cellCount, out var num1), num1, num2);
+	}
+
+	static void AddLayers(NetworkVisibilityGrid grid, List<Group> groups, int groupX, int groupY, int groupLayer)
 	{
 		Add(grid, groups, groupX, groupY, groupLayer);
 
 		if (groupLayer == 0)
+		{
 			Add(grid, groups, groupX, groupY, 1);
-
-		if (groupLayer == 1)
+		}
+		else if (groupLayer == 1)
 		{
 			Add(grid, groups, groupX, groupY, 2);
 			Add(grid, groups, groupX, groupY, 0);
 		}
+		else if (groupLayer == 2)
+		{
+			Add(grid, groups, groupX, groupY, 1);
+		}
 	}
 
-	private static void Add(NetworkVisibilityGrid grid, List<Group> groups, int groupX, int groupY, int groupLayer)
-		=> groups.Add(Net.sv.visibility.Get(CoordToID(grid, groupX, groupY, groupLayer)));
+	static void Add(NetworkVisibilityGrid grid, List<Group> groups, int groupX, int groupY, int groupLayer) => groups.Add(Net.sv.visibility.Get(CoordToID(grid, groupX, groupY, groupLayer)));
 
-	private static uint CoordToID(NetworkVisibilityGrid grid, int x, int y, int layer)
-		=> (uint)(layer * (grid.cellCount * grid.cellCount) + (x * grid.cellCount + y) + grid.startID);
-
-	private static int GetGroupLayer(NetworkVisibilityGrid grid, int groupId)
-	{
-		groupId -= grid.startID;
-		return Math.DivRem(groupId, (grid.cellCount * grid.cellCount), out _);
-	}
+	static uint CoordToID(NetworkVisibilityGrid grid, int x, int y, int layer) => (uint)(layer * (grid.cellCount * grid.cellCount) + x * grid.cellCount + y + grid.startID);
 }
