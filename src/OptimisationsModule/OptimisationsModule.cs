@@ -85,7 +85,8 @@ public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, Empty
 
 	static bool GetVisibleFromCircle(NetworkVisibilityGrid grid, Group group, List<Group> groups, int radius)
 	{
-		List<int>? lookup = GetCircleSizeLookup(radius);
+		var lookup = GetCircleSizeLookup(radius);
+
 		if (lookup == null)
 			return true;
 
