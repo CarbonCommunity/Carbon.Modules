@@ -67,7 +67,10 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 	}
 	private object CanUnlockTechTreeNode()
 	{
-		if (ConfigInstance.NoTechTreeUnlock) return false;
+		if (ConfigInstance.NoTechTreeUnlock)
+		{
+			return false;
+		}
 
 		return null;
 	}
@@ -185,20 +188,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		Network.Net.sv.Kick(player.net.connection, $"Banned: {reason}", false);
 	}
 
-	private object OnServerMessage(string message, string name)
-	{
-#if MINIMAL
-		if (!ConfigInstance.NoGiveNotices || !(name == "SERVER" && message.Contains("gave"))) return null;
-#else
-		var core = Community.Runtime.Core.To<CorePlugin>();
-		var defaultName = core.DefaultServerChatName != "-1" ? core.DefaultServerChatName : "SERVER";
-
-		if (!ConfigInstance.NoGiveNotices || !(name == defaultName && message.Contains("gave"))) return null;
-#endif
-
-		return true;
-	}
-
 	private void ToggleCadmin(BasePlayer player, string cmd, string[] args)
 	{
 		if (player == null)
@@ -215,9 +204,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 public class ModerationToolsConfig
 {
-	[JsonProperty("No give notices")]
-	public bool NoGiveNotices = true;
-
 	[JsonProperty("No TechTree unlock")]
 	public bool NoTechTreeUnlock = false;
 
