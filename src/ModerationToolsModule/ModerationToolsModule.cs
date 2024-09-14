@@ -65,15 +65,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 		return null;
 	}
-	private object CanUnlockTechTreeNode()
-	{
-		if (ConfigInstance.NoTechTreeUnlock)
-		{
-			return false;
-		}
-
-		return null;
-	}
 
 	public void Mute(ConsoleSystem.Arg arg)
 	{
@@ -204,9 +195,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 
 public class ModerationToolsConfig
 {
-	[JsonProperty("No TechTree unlock")]
-	public bool NoTechTreeUnlock = false;
-
 	public ModerationSettings Moderation = new();
 
 	public class ModerationSettings
