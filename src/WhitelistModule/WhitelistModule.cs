@@ -39,6 +39,11 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 		Permissions.UnregisterPermissions(this);
 		Permissions.RegisterPermission(ConfigInstance.BypassPermission, this);
+
+		if (!Permissions.GroupExists(ConfigInstance.BypassGroup))
+		{
+			Permissions.CreateGroup(ConfigInstance.BypassGroup, "Whitelisted", 0);
+		}
 	}
 	public override void OnDisabled(bool initialized)
 	{
