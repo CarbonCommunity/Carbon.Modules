@@ -35,7 +35,10 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 		Subscribe("CanUserLogin");
 
-		if (!initialized) return;
+		if (!initialized)
+		{
+			return;
+		}
 
 		Permissions.UnregisterPermissions(this);
 		Permissions.RegisterPermission(ConfigInstance.BypassPermission, this);
@@ -83,6 +86,16 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 
 	public bool CanBypass(string playerId)
 	{
+		if (!Permissions.UserExists(playerId))
+		{
+			Permissions.GetUserData(playerId, true);
+
+			if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
+			{
+				Permissions.AddUserGroup(playerId, Community.Runtime.Config.Permissions.PlayerDefaultGroup);
+			}
+		}
+
 		return Permissions.UserHasPermission(playerId, ConfigInstance.BypassPermission) ||
 		       (!string.IsNullOrEmpty(ConfigInstance.BypassGroup) && Permissions.UserHasGroup(playerId, ConfigInstance.BypassGroup));
 	}

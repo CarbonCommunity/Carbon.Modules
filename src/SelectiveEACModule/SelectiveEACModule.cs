@@ -64,6 +64,17 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 	private static bool CanBypass(Connection connection)
 	{
 		var id = connection.userid.ToString();
+		var permissions = Community.Runtime.Core.permission;
+
+		if (!permissions.UserExists(id))
+		{
+			permissions.GetUserData(id, true);
+
+			if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
+			{
+				permissions.AddUserGroup(id, Community.Runtime.Config.Permissions.PlayerDefaultGroup);
+			}
+		}
 
 		return connection.os == "editor" &&
 			(Community.Runtime.Core.permission.UserHasPermission(id, Singleton.ConfigInstance.UsePermission) || Community.Runtime.Core.permission.UserHasGroup(id, Singleton.ConfigInstance.UseGroup));
