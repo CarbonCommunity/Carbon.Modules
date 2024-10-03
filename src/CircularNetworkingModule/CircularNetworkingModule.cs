@@ -16,11 +16,11 @@ using Oxide.Core;
 namespace Carbon.Modules;
 #pragma warning disable IDE0051
 
-public partial class OptimisationsModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
+public partial class CircularNetworkingModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
-	public override string Name => "Optimisations";
+	public override string Name => "CircularNetworking";
 	public override VersionNumber Version => new(1, 0, 0);
-	public override Type Type => typeof(OptimisationsModule);
+	public override Type Type => typeof(CircularNetworkingModule);
 	public override bool EnabledByDefault => false;
 
 	internal int visibilityRadiusFarOverrideOriginal;
