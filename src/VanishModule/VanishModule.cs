@@ -27,8 +27,6 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	internal readonly GameObjectRef _drownEffect = new() { guid = "28ad47c8e6d313742a7a2740674a25b5" };
 	internal readonly GameObjectRef _fallDamageEffect = new() { guid = "ca14ed027d5924003b1c5d9e523a5fce" };
 	internal readonly GameObjectRef _emptyEffect = new();
-	internal readonly string _whooshEffect = "assets/prefabs/npc/patrol helicopter/effects/rocket_fire.prefab";
-	internal readonly string _gutshotEffect = "assets/bundled/prefabs/fx/player/gutshot_scream.prefab";
 
 	public override void OnServerInit(bool initial)
 	{
@@ -138,15 +136,20 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			var temp = Pool.Get<List<Connection>>();
 			temp.AddRange(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player));
 			player.OnNetworkSubscribersLeave(temp);
-
 			Pool.FreeUnmanaged(ref temp);
 
 			SimpleAIMemory.AddIgnorePlayer(player);
 
 			if (ConfigInstance.WhooshSoundOnVanish)
 			{
-				if (ConfigInstance.BroadcastVanishSounds) Effect.server.Run(_whooshEffect, player.transform.position);
-				else SendEffectTo(_whooshEffect, player);
+				if (ConfigInstance.BroadcastVanishSounds)
+				{
+					Effect.server.Run(ConfigInstance.Effect.Vanishing, player.transform.position);
+				}
+				else
+				{
+					SendEffectTo(ConfigInstance.Effect.Vanishing, player);
+				}
 			}
 
 			if (withUI) _drawUI(player);
@@ -176,8 +179,14 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 			if (ConfigInstance.GutshotScreamOnUnvanish)
 			{
-				if (ConfigInstance.BroadcastVanishSounds) Effect.server.Run(_gutshotEffect, player.transform.position);
-				else SendEffectTo(_gutshotEffect, player);
+				if (ConfigInstance.BroadcastVanishSounds)
+				{
+					Effect.server.Run(ConfigInstance.Effect.Unvanishing, player.transform.position);
+				}
+				else
+				{
+					SendEffectTo(ConfigInstance.Effect.Unvanishing, player);
+				}
 			}
 
 			using var cui = new CUI(Handler);
@@ -272,13 +281,15 @@ public class VanishConfig
 	public string InvisibleTextColor = "#8bba49";
 	[JsonProperty("InvisibleTextAnchor [Anchor]")]
 	public TextAnchor InvisibleTextAnchor = TextAnchor.LowerCenter;
-	public float[] InvisibleTextAnchorX = new float[] { 0, 1 };
-	public float[] InvisibleTextAnchorY = new float[] { 0, 0.025f };
+	public float[] InvisibleTextAnchorX = [0, 1];
+	public float[] InvisibleTextAnchorY = [0, 0.025f];
 
 	public string InvisibleIconUrl = "";
 	public string InvisibleIconColor = "1 1 1 0.3";
-	public float[] InvisibleIconAnchorX = new float[] { 0.175f, 0.22f };
-	public float[] InvisibleIconAnchorY = new float[] { 0.017f, 0.08f };
+	public float[] InvisibleIconAnchorX = [0.175f, 0.22f];
+	public float[] InvisibleIconAnchorY = [0.017f, 0.08f];
+
+	public EffectConfig Effect = new();
 
 	public bool BroadcastVanishSounds = false;
 	public bool WhooshSoundOnVanish = true;
@@ -286,4 +297,10 @@ public class VanishConfig
 	public bool EnableLogs = true;
 	public bool TeleportBackOnUnvanish = false;
 	public bool CanDamageWhenVanished = true;
+
+	public class EffectConfig
+	{
+		public string Vanishing = "assets/prefabs/npc/patrol helicopter/effects/rocket_fire.prefab";
+		public string Unvanishing = "assets/bundled/prefabs/fx/player/gutshot_scream.prefab";
+	}
 }
