@@ -27,6 +27,8 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 	public override bool ForceModded => false;
 	public override bool AutoPatch => true;
 
+	public static readonly int DefaultEncryption = 1;
+
 	public SelectiveEACModule()
 	{
 		Singleton = this;
@@ -80,17 +82,13 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 			(Community.Runtime.Core.permission.UserHasPermission(id, Singleton.ConfigInstance.UsePermission) || Community.Runtime.Core.permission.UserHasGroup(id, Singleton.ConfigInstance.UseGroup));
 	}
 
-	// Returns the encryption level for a user
-	// 2: EAC Black magic
-	// 1: XOR using the network protocol uint and a constant 256 byte salt (also bad idea)
-	// 0: Nothing (bad idea)
 	private static int UserEncryptionOverride(Connection connection)
 	{
 		try
 		{
 			if (CanBypass(connection))
 			{
-				return Singleton.ConfigInstance.ServerEncryptionOverride;
+				return DefaultEncryption;
 			}
 		}
 		catch (Exception e)
@@ -166,7 +164,6 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 
 public class SelectiveEACConfig
 {
-	public int ServerEncryptionOverride = 1;
 	public string UsePermission = "selectiveeac.use";
 	public string UseGroup = "selectiveeac";
 }
