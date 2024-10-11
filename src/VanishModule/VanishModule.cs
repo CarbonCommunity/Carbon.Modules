@@ -118,7 +118,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		effectInstance.Clear();
 	}
 
-	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true, bool toggleGodMode = true)
+	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true)
 	{
 		if (wants)
 		{
@@ -160,6 +160,10 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			{
 				player.SendConsoleCommand("noclip");
 			}
+
+			var vanishObject = new GameObject("Vanish Collider");
+			vanishObject.transform.SetParent(player.transform);
+			vanishObject.AddComponent<VanishedPlayer>().Init(player);
 		}
 		else
 		{
@@ -198,6 +202,13 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			{
 				player.SendConsoleCommand("noclip");
 			}
+
+			var vanishMono = player.GetComponentInChildren<VanishedPlayer>();
+
+			if(vanishMono != null)
+			{
+				GameObject.Destroy(vanishMono.gameObject);
+			}
 		}
 	}
 
@@ -225,7 +236,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			foreach (var trigger in player.triggers)
 			{
-				Logger.Warn($"Player '{player.Connection}' left {trigger.name} ({trigger.GetType()})");
+
 				trigger.OnEntityLeave(player);
 			}
 		}
@@ -262,6 +273,61 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		}
 
 		cui.Send(container, player);
+	}
+
+	public class VanishedPlayer : FacepunchBehaviour
+	{
+		public BasePlayer player;
+
+		public void Init(BasePlayer player)
+		{
+			this.player = player;
+			gameObject.layer = (int)Rust.Layer.Reserved1;
+			gameObject.transform.localPosition = Vector3.zero;
+			gameObject.transform.localRotation = Quaternion.identity;
+
+			var playerCollider = player.colliderValue.Get();
+			var vanishCollider = gameObject.AddComponent<CapsuleCollider>();
+			vanishCollider.center = playerCollider.center;
+			vanishCollider.radius = playerCollider.radius;
+			vanishCollider.height = playerCollider.height;
+			vanishCollider.direction = playerCollider.direction;
+			vanishCollider.isTrigger = true;
+
+			var colliders = Pool.Get<List<Collider>>();
+			Vis.Components(gameObject.transform.position, vanishCollider.radius, colliders);
+
+			foreach(var collider in colliders)
+			{
+				OnTriggerEnter(collider);
+			}
+
+			Pool.FreeUnmanaged(ref colliders);
+		}
+
+		private void OnTriggerEnter(Collider collider)
+		{
+			var parent = collider.gameObject.GetComponent<TriggerParent>();
+
+			if (parent == null)
+			{
+				return;
+			}
+
+			parent.OnEntityEnter(player);
+		}
+
+		private void OnTriggerExit(Collider collider)
+		{
+			var parent = collider.gameObject.GetComponent<TriggerParent>();
+
+			if (parent == null)
+			{
+				return;
+			}
+
+			parent.OnEntityLeave(player);
+		}
 	}
 }
 
