@@ -78,8 +78,7 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 			}
 		}
 
-		return connection.os == "editor" &&
-			(Community.Runtime.Core.permission.UserHasPermission(id, Singleton.ConfigInstance.UsePermission) || Community.Runtime.Core.permission.UserHasGroup(id, Singleton.ConfigInstance.UseGroup));
+		return Community.Runtime.Core.permission.UserHasPermission(id, Singleton.ConfigInstance.UsePermission) || Community.Runtime.Core.permission.UserHasGroup(id, Singleton.ConfigInstance.UseGroup);
 	}
 
 	private static int UserEncryptionOverride(Connection connection)
