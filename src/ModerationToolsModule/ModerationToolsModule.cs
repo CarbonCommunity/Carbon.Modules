@@ -56,16 +56,6 @@ public partial class ModerationToolsModule : CarbonModule<ModerationToolsConfig,
 		Community.Runtime.Core.cmd.AddConsoleCommand("cmod.ban", this, nameof(Ban), permissions: cmod2Permissions, cooldown: ConfigInstance.Moderation.CmodCommandCooldown, silent: true);
 	}
 
-	private object INoteAdminHack(BasePlayer player)
-	{
-		if (Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Moderation.Cmod1Permission))
-		{
-			return false;
-		}
-
-		return null;
-	}
-
 	public void Mute(ConsoleSystem.Arg arg)
 	{
 		var player = arg.Player();
