@@ -7,7 +7,7 @@ using Facepunch;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
-using Rust.AI;
+using Rust.Ai;
 using UnityEngine;
 
 namespace Carbon.Modules;
