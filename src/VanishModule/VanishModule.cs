@@ -164,6 +164,9 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			var vanishObject = new GameObject("Vanish Collider");
 			vanishObject.transform.SetParent(player.transform);
 			vanishObject.AddComponent<VanishedPlayer>().Init(player);
+
+			// OnCarbonVanished
+			Carbon.HookCaller.CallStaticHook(778631450, player);
 		}
 		else
 		{
@@ -209,6 +212,9 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			{
 				GameObject.Destroy(vanishMono.gameObject);
 			}
+
+			// OnCarbonUnvanished
+			Carbon.HookCaller.CallStaticHook(3385747762, player);
 		}
 	}
 
