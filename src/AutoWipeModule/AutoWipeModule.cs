@@ -145,7 +145,9 @@ public class AutoWipeConfig
 
 		public void InitWorld()
 		{
+#if !MINIMAL
 			Community.Runtime.Core.CustomMapName = string.IsNullOrEmpty(Name) ? "-1" : Name;
+#endif
 			World.Url = ConVar.Server.levelurl = Url;
 			if (Size != 0)
 				World.InitSize(ConVar.Server.worldsize = Size);
