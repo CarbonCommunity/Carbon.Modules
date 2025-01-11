@@ -7,8 +7,7 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using Rust;
 using Cronos;
-using UnityEngine.Serialization;
-using Random = Oxide.Core.Random;
+using Random = UnityEngine.Random;
 
 namespace Carbon.Modules;
 
