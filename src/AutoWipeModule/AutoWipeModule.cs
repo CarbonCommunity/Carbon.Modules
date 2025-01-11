@@ -107,10 +107,11 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 
 public class AutoWipeConfig
 {
+	public bool UseUtc = true;
+
 	public WipeConfig FullWipe;
 	public WipeConfig MapWipe;
 
-	public bool UseUtc = true;
 	public List<Wipe> Wipes = new();
 	[JsonProperty("PickOrder (0=next 1=prev 2=random)")]
 	public PickOrders PickOrder = PickOrders.Next;
