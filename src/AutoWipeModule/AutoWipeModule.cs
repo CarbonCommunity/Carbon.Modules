@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Rust;
+using Cronos;
+using UnityEngine.Serialization;
+using Random = Oxide.Core.Random;
 
 namespace Carbon.Modules;
 
@@ -15,24 +19,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 	public override System.Type Type => typeof(AutoWipeModule);
 	public override bool EnabledByDefault => false;
 
-	public bool justWiped;
-
-	public override void OnPostServerInit(bool initial)
-	{
-		base.OnPostServerInit(initial);
-
-		if (!justWiped)
-		{
-			return;
-		}
-
-		foreach (var command in ConfigInstance.PostWipeCommands)
-		{
-			if (string.IsNullOrEmpty(command))
-				continue;
-			ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), command);
-		}
-	}
+	private CronExpression cronCache;
 
 	public override void Load()
 	{
@@ -43,47 +30,69 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 			return;
 		}
 
-		if (ConfigInstance.Maps.Count == 0)
+		if (ConfigInstance.Wipes.Count == 0)
 		{
-			ConfigInstance.Maps.Add(new());
+			ConfigInstance.Wipes.Add(new());
 			Save();
 		}
 
-		if (ConfigInstance.LastProtocol != Protocol.save)
-		{
-			ConfigInstance.LastProtocol = Protocol.save;
-			var map = ConfigInstance.LastMap = ConfigInstance.GetMap();
+		var currentWipe = ConfigInstance.CurrentWipe;
+		var wipe = ConfigInstance.CurrentWipe.IsValid ? ConfigInstance.CurrentWipe : ConfigInstance.GetWipe();
+		var justWiped = !currentWipe.Equals(wipe);
+		var config = ConfigInstance.GetWipeConfig(wipe);
 
+		if (wipe.IsDue(ConfigInstance.UseUtc))
+		{
+			wipe = ConfigInstance.GetWipe();
+			config = ConfigInstance.GetWipeConfig(wipe);
+			justWiped = true;
+		}
+
+		if (justWiped)
+		{
+			ConfigInstance.CurrentWipe = wipe;
 			ConVar.Server.autoUploadMap = false;
 
-			justWiped = true;
 			using var table = new StringTable("name", "seed", "size", "url");
-			table.AddRow(map.Name, map.Seed, map.Size, map.Url);
+			table.AddRow(wipe.MapName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
 			PutsWarn($"Selected map:\n{table.ToStringMinimal()}");
-			if (map.RemoveOnPicked)
+			if (wipe.Temporary)
 			{
-				ConfigInstance.Maps.Remove(map);
+				ConfigInstance.Wipes.Remove(wipe);
 				PutsWarn($"Removed map from list");
 			}
 
-			map.InitWorld();
+			wipe.InitWorld();
 
-			foreach (var delete in ConfigInstance.PostWipeDeletes)
+			if (config.PostWipeCommands != null)
 			{
-				if (string.IsNullOrEmpty(delete))
-					continue;
-
-				if (OsEx.File.Exists(delete))
+				foreach (var command in config.PostWipeCommands)
 				{
-					OsEx.File.Delete(delete);
-					PutsWarn($"Deleting file '{delete}'");
-					continue;
+					if (string.IsNullOrEmpty(command))
+						continue;
+					ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), command);
 				}
+			}
 
-				if (OsEx.Folder.Exists(delete))
+			if (config.PostWipeDeletes != null)
+			{
+				foreach (var delete in config.PostWipeDeletes)
 				{
-					OsEx.Folder.Delete(delete);
-					PutsWarn($"Deleting directory '{delete}'");
+					if (string.IsNullOrEmpty(delete))
+						continue;
+
+					if (OsEx.File.Exists(delete))
+					{
+						OsEx.File.Delete(delete);
+						PutsWarn($"Deleting file '{delete}'");
+						continue;
+					}
+
+					if (OsEx.Folder.Exists(delete))
+					{
+						OsEx.Folder.Delete(delete);
+						PutsWarn($"Deleting directory '{delete}'");
+					}
 				}
 			}
 
@@ -91,7 +100,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 		}
 		else
 		{
-			ConfigInstance.LastMap.InitWorld();
+			ConfigInstance.CurrentWipe.InitWorld();
 			PutsWarn($"Save file valid at protocol {Protocol.printable}. No auto-wipe necessary.");
 		}
 	}
@@ -99,64 +108,117 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 
 public class AutoWipeConfig
 {
-	public string[] PostWipeCommands = new[] { "" };
-	public string[] PostWipeDeletes = new[] { "" };
-	public List<Map> Maps = new();
-	[JsonProperty("MapPickOrder (0=next 1=prev 2=random)")]
-	public MapPickOrders MapPickOrder = MapPickOrders.Next;
-	public int NextMapPick = -1;
-	public int LastProtocol;
-	public Map LastMap;
+	public WipeConfig FullWipe;
+	public WipeConfig MapWipe;
 
-	public Map GetMap()
+	public bool UseUtc = true;
+	public List<Wipe> Wipes = new();
+	[JsonProperty("PickOrder (0=next 1=prev 2=random)")]
+	public PickOrders PickOrder = PickOrders.Next;
+	public Wipe CurrentWipe;
+	public int NextPickIndex = -1;
+
+	public Wipe GetWipe()
 	{
-		if (Maps.Count == 0)
-		{
+		if (Wipes.Count == 0)
 			return default;
-		}
 
-		switch (MapPickOrder)
+		switch (PickOrder)
 		{
-			case MapPickOrders.Next:
-				NextMapPick++;
-				if (NextMapPick >= Maps.Count)
-					NextMapPick = 0;
-				return Maps[NextMapPick];
+			case PickOrders.Next:
+				NextPickIndex++;
+				if (NextPickIndex >= Wipes.Count)
+					NextPickIndex = 0;
+				return Wipes[NextPickIndex];
 
-			case MapPickOrders.Previous:
-				NextMapPick--;
-				if (NextMapPick < 0)
-					NextMapPick = Maps.Count - 1;
-				return Maps[NextMapPick];
-			case MapPickOrders.Random:
-				return Maps[NextMapPick = Random.Range(0, Maps.Count)];
+			case PickOrders.Previous:
+				NextPickIndex--;
+				if (NextPickIndex < 0)
+					NextPickIndex = Wipes.Count - 1;
+				return Wipes[NextPickIndex];
+			case PickOrders.Random:
+				return Wipes[NextPickIndex = Random.Range(0, Wipes.Count)];
 		}
 
 		return default;
 	}
-
-	public struct Map
+	public WipeConfig GetWipeConfig(Wipe wipe)
 	{
-		public string Name;
-		public string Url;
-		public int Size;
-		public int Seed;
-		public bool RemoveOnPicked;
+		return wipe.Type switch
+		{
+			WipeTypes.FullWipe => FullWipe,
+			WipeTypes.MapWipe => MapWipe,
+			_ => default
+		};
+	}
+
+	public struct Wipe
+	{
+		public string MapName;
+		public string MapUrl;
+		public int MapSize;
+		public int ServerSeed;
+		[JsonProperty("Type (0=fullwipe 1=mapwipe)")]
+		public WipeTypes Type;
+		public bool Temporary;
+		public string NextWipeCron;
+
+		[JsonIgnore]
+		public bool IsValid => !string.IsNullOrEmpty(MapName) || !string.IsNullOrEmpty(MapUrl) || MapSize > 0 || ServerSeed > 0;
 
 		public void InitWorld()
 		{
 #if !MINIMAL
-			Community.Runtime.Core.CustomMapName = string.IsNullOrEmpty(Name) ? "-1" : Name;
+			Community.Runtime.Core.CustomMapName = string.IsNullOrEmpty(MapName) ? "-1" : MapName;
 #endif
-			World.Url = ConVar.Server.levelurl = Url;
-			if (Size != 0)
-				World.InitSize(ConVar.Server.worldsize = Size);
-			if (Seed != 0)
-				World.InitSeed(ConVar.Server.seed = Seed);
+			World.Url = ConVar.Server.levelurl = MapUrl;
+			if (MapSize != 0)
+				World.InitSize(ConVar.Server.worldsize = MapSize);
+			if (ServerSeed != 0)
+				World.InitSeed(ConVar.Server.seed = ServerSeed);
+		}
+
+		public override bool Equals(object other)
+		{
+			if (other is Wipe otherVal)
+				return otherVal.MapName == MapName && otherVal.MapUrl == MapUrl && otherVal.MapSize == MapSize && otherVal.ServerSeed == ServerSeed && otherVal.Type == Type;
+
+			return false;
+		}
+
+		public bool IsDue(bool useUtc)
+		{
+			var time = useUtc ? DateTime.UtcNow : DateTime.Now;
+			var cron = CronExpression.Parse(NextWipeCron);
+			var occurence = cron.GetNextOccurrence(time);
+
+			if (!occurence.HasValue)
+			{
+				return false;
+			}
+
+			var matchTime = occurence.Value;
+			Logger.Log($"{time}: {matchTime}");
+			return matchTime.Hour == time.Hour &&
+			       matchTime.Day == time.Day &&
+			       matchTime.Month == time.Month &&
+			       matchTime.Year == time.Year;
 		}
 	}
 
-	public enum MapPickOrders
+	public struct WipeConfig
+	{
+		public string[] PostWipeCommands;
+		public string[] PostWipeDeletes;
+	}
+
+	public enum WipeTypes
+	{
+		FullWipe,
+		MapWipe
+	}
+
+	public enum PickOrders
 	{
 		Next,
 		Previous,
