@@ -15,10 +15,8 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 {
 	public override string Name => "AutoWipe";
 	public override VersionNumber Version => new(1, 0, 0);
-	public override System.Type Type => typeof(AutoWipeModule);
+	public override Type Type => typeof(AutoWipeModule);
 	public override bool EnabledByDefault => false;
-
-	private CronExpression cronCache;
 
 	public override void Load()
 	{
@@ -181,9 +179,14 @@ public class AutoWipeConfig
 		public override bool Equals(object other)
 		{
 			if (other is Wipe otherVal)
-				return otherVal.MapName == MapName && otherVal.MapUrl == MapUrl && otherVal.MapSize == MapSize && otherVal.ServerSeed == ServerSeed && otherVal.Type == Type;
+				return GetHashCode() == otherVal.GetHashCode();
 
 			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			return (MapName, MapUrl, MapSize, ServerSeed, Type, Temporary, NextWipeCron).GetHashCode();
 		}
 
 		public bool IsDue(bool useUtc)
