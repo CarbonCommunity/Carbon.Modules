@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
@@ -47,12 +48,8 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 
 		if (justWiped)
 		{
-			ConfigInstance.CurrentWipe = wipe;
 			ConVar.Server.autoUploadMap = false;
 
-			using var table = new StringTable("name", "seed", "size", "url");
-			table.AddRow(wipe.MapName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
-			PutsWarn($"Selected map:\n{table.ToStringMinimal()}");
 			if (wipe.Temporary)
 			{
 				ConfigInstance.Wipes.Remove(wipe);
@@ -60,6 +57,11 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 			}
 
 			wipe.InitWorld();
+			ConfigInstance.CurrentWipe = wipe;
+
+			using var table = new StringTable("name", "seed", "size", "url");
+			table.AddRow(wipe.MapName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
+			PutsWarn($"Selected map:\n{table.ToStringMinimal()}");
 
 			if (config.PostWipeCommands != null)
 			{
@@ -100,6 +102,66 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 			ConfigInstance.CurrentWipe.InitWorld();
 			PutsWarn($"Save file valid at protocol {Protocol.printable}. No auto-wipe necessary.");
 		}
+	}
+
+	[ConsoleCommand("autowipe.wipes", "Prints all available wipes present in the Wipes config property.")]
+	[AuthLevel(2)]
+	private void print_wipes(ConsoleSystem.Arg arg)
+	{
+		using var table = new StringTable("", "mapname", "mapurl", "mapsize", "serverseed", "type", "temp", "nextwipe");
+		for (int i = 0; i < ConfigInstance.Wipes.Count; i++)
+		{
+			var wipe = ConfigInstance.Wipes[i];
+			table.AddRow(i + 1, wipe.MapName, wipe.MapUrl, wipe.MapSize, wipe.ServerSeed == 0 ? "random" : wipe.ServerSeed,
+				wipe.Type, wipe.Temporary ? "yes" : "no", wipe.NextWipeCron);
+		}
+		arg.ReplyWith(table.ToStringMinimal());
+	}
+
+	[ConsoleCommand("autowipe.delete", "Deletes an existent wipe present in the Wipes config property.")]
+	[AuthLevel(2)]
+	private void delete_wipe(ConsoleSystem.Arg arg)
+	{
+		if (arg.HasArgs())
+		{
+			arg.ReplyWith("Provide an index from 'autowipe.wipes'");
+			return;
+		}
+
+		var i = arg.GetInt(0);
+		if (i < 0 || i >= ConfigInstance.Wipes.Count)
+		{
+			arg.ReplyWith("Went above or below indexes available. Use numbers from 'autowipe.wipes`'");
+			return;
+		}
+
+		ConfigInstance.Wipes.RemoveAt(i);
+		Save();
+		arg.ReplyWith("Removed wipe");
+	}
+
+	[ConsoleCommand("autowipe.add", "Adds a new wipe to the list. (Syntax eg. autowipe.add \"<MapName>\" \"<MapUrl>\" \"<MapSize>\" \"<ServerSeed>\" \"<Type|0=fullwipe 1=mapwipe>\" \"<NextWipeCron>\")")]
+	[AuthLevel(2)]
+	private void add_wipe(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(7))
+		{
+			arg.ReplyWith("You've got missing arguments. Please make sure to follow the following syntax:\n" +
+			              "eg. autowipe.add \"<MapName>\" \"<MapUrl>\" \"<MapSize>\" \"<ServerSeed>\" \"<Type|0=fullwipe 1=mapwipe>\" \"<NextWipeCron>\"");
+			return;
+		}
+		ConfigInstance.Wipes.Add(new()
+		{
+			MapName = arg.GetString(0),
+			MapUrl = arg.GetString(1),
+			MapSize = arg.GetInt(2),
+			ServerSeed = arg.GetInt(3),
+			Type = (AutoWipeConfig.WipeTypes)arg.GetInt(4),
+			Temporary = arg.GetBool(5),
+			NextWipeCron = arg.GetString(6)
+		});
+		Save();
+		arg.ReplyWith("Added wipe");
 	}
 }
 
@@ -172,8 +234,9 @@ public class AutoWipeConfig
 			World.Url = ConVar.Server.levelurl = MapUrl;
 			if (MapSize != 0)
 				World.InitSize(ConVar.Server.worldsize = MapSize);
-			if (ServerSeed != 0)
-				World.InitSeed(ConVar.Server.seed = ServerSeed);
+			if (ServerSeed == 0)
+				ServerSeed = Random.Range(1, int.MaxValue);
+			World.InitSeed(ConVar.Server.seed = ServerSeed);
 		}
 
 		public override bool Equals(object other)
@@ -201,7 +264,6 @@ public class AutoWipeConfig
 			}
 
 			var matchTime = occurence.Value;
-			Logger.Log($"{time}: {matchTime}");
 			return matchTime.Hour == time.Hour &&
 			       matchTime.Day == time.Day &&
 			       matchTime.Month == time.Month &&
