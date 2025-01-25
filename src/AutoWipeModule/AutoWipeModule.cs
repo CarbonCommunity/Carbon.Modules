@@ -200,6 +200,56 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 		Save();
 		arg.ReplyWith("Added wipe");
 	}
+
+	[ConsoleCommand("autowipe.maps", "Prints all available map urls present in the MapPool config property.")]
+	[AuthLevel(2)]
+	private void print_maps(ConsoleSystem.Arg arg)
+	{
+		using var table = new StringTable("", "mapurl");
+		for (int i = 0; i < ConfigInstance.MapPool.Count; i++)
+		{
+			var wipe = ConfigInstance.MapPool[i];
+			table.AddRow(i + 1, wipe);
+		}
+		arg.ReplyWith(table.ToStringMinimal());
+	}
+
+	[ConsoleCommand("autowipe.deletemap", "Deletes an existent map url present in the MapPool config property.")]
+	[AuthLevel(2)]
+	private void delete_map(ConsoleSystem.Arg arg)
+	{
+		if (arg.HasArgs())
+		{
+			arg.ReplyWith("Provide an index from 'autowipe.maps'");
+			return;
+		}
+
+		var i = arg.GetInt(0);
+		if (i < 0 || i >= ConfigInstance.Wipes.Count)
+		{
+			arg.ReplyWith("Went above or below indexes available. Use numbers from 'autowipe.maps`'");
+			return;
+		}
+
+		ConfigInstance.Wipes.RemoveAt(i);
+		Save();
+		arg.ReplyWith("Removed map url");
+	}
+
+	[ConsoleCommand("autowipe.addmap", "Adds a new map url to the list. (Syntax eg. autowipe.addmap \"<MapUrl>\"")]
+	[AuthLevel(2)]
+	private void add_map(ConsoleSystem.Arg arg)
+	{
+		if (!arg.HasArgs(7))
+		{
+			arg.ReplyWith("You've got missing arguments. Please make sure to follow the following syntax:\n" +
+			              "eg. autowipe.addmap \"<MapUrl>\"");
+			return;
+		}
+		ConfigInstance.MapPool.Add(arg.GetString(0));
+		Save();
+		arg.ReplyWith("Added map url");
+	}
 }
 
 public class AutoWipeConfig
