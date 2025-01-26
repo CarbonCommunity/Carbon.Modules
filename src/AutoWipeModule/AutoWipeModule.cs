@@ -13,20 +13,23 @@ using Random = UnityEngine.Random;
 
 namespace Carbon.Modules;
 
-public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleData>
+public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 {
 	public override string Name => "AutoWipe";
 	public override VersionNumber Version => new(1, 0, 0);
 	public override Type Type => typeof(AutoWipeModule);
 	public override bool EnabledByDefault => false;
 
+	private readonly float wipeCooldown = 60 * 60;
 	private Timer wipeTimer;
+
+	public bool InCooldown() => (DateTime.UtcNow - new DateTime(DataInstance.timeSinceLastWipe)).TotalSeconds <= wipeCooldown;
 
 	public override void Load()
 	{
 		base.Load();
 
-		if (!IsEnabled())
+		if (!IsEnabled() || InCooldown())
 		{
 			return;
 		}
@@ -39,14 +42,15 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 
 		ConfigInstance.MapPool ??= new();
 
-		var currentWipe = ConfigInstance.CurrentWipe;
-		var wipe = ConfigInstance.CurrentWipe.IsValid ? ConfigInstance.CurrentWipe : ConfigInstance.GetWipe();
+		var currentWipe = DataInstance.CurrentWipe;
+		var wipe = DataInstance.CurrentWipe.IsValid ? DataInstance.CurrentWipe : ConfigInstance.GetWipe(DataInstance);
 		var justWiped = !currentWipe.Equals(wipe);
 		var config = ConfigInstance.GetWipeConfig(wipe);
 
-		if (wipe.IsDue(ConfigInstance.UseUtc))
+		if (wipe.IsDue())
 		{
-			wipe = ConfigInstance.GetWipe();
+			DataInstance.timeSinceLastWipe = DateTime.UtcNow.Ticks;
+			wipe = ConfigInstance.GetWipe(DataInstance);
 			config = ConfigInstance.GetWipeConfig(wipe);
 			justWiped = true;
 		}
@@ -62,7 +66,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 			}
 
 			wipe.InitWorld(ConfigInstance.MapPool);
-			ConfigInstance.CurrentWipe = wipe;
+			DataInstance.CurrentWipe = wipe;
 
 			using var table = new StringTable("name", "seed", "size", "url");
 			table.AddRow(wipe.MapBrowserName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
@@ -104,7 +108,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 		}
 		else
 		{
-			ConfigInstance.CurrentWipe.InitWorld(ConfigInstance.MapPool);
+			DataInstance.CurrentWipe.InitWorld(ConfigInstance.MapPool);
 		}
 	}
 
@@ -112,24 +116,24 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 	{
 		base.OnServerInit(initial);
 
-		wipeTimer =	Community.Runtime.Core.timer.Every(ConfigInstance.WipeTick, WipeTickImpl);
+		wipeTimer = Community.Runtime.Core.timer.Every(ConfigInstance.Tick, WipeTickImpl);
 	}
 
 	private void WipeTickImpl()
 	{
-		if (!IsEnabled())
+		if (!IsEnabled() || InCooldown())
 		{
 			return;
 		}
 
-		if (!ConfigInstance.CurrentWipe.IsDue(ConfigInstance.UseUtc))
+		if (!DataInstance.CurrentWipe.IsDue())
 		{
 			return;
 		}
 
-		if (ConfigInstance.CurrentWipe.WipeCommands != null)
+		if (DataInstance.CurrentWipe.WipeCommands != null)
 		{
-			foreach (var command in ConfigInstance.CurrentWipe.WipeCommands)
+			foreach (var command in DataInstance.CurrentWipe.WipeCommands)
 			{
 				if (string.IsNullOrEmpty(command))
 					continue;
@@ -144,13 +148,16 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 	[AuthLevel(2)]
 	private void print_wipes(ConsoleSystem.Arg arg)
 	{
-		using var table = new StringTable("", "wipename", "mapurl", "mapsize", "serverseed", "type", "temp", "nextwipe", "wipecommands");
+		using var table = new StringTable("", "wipename", "mapurl", "mapsize", "serverseed", "type", "temp", "nextwipe",
+			"wipecommands");
 		for (int i = 0; i < ConfigInstance.Wipes.Count; i++)
 		{
 			var wipe = ConfigInstance.Wipes[i];
-			table.AddRow(i + 1, wipe.WipeName, wipe.MapUrl, wipe.MapSize, wipe.ServerSeed == 0 ? "random" : wipe.ServerSeed,
+			table.AddRow(i + 1, wipe.WipeName, wipe.MapUrl, wipe.MapSize,
+				wipe.ServerSeed == 0 ? "random" : wipe.ServerSeed,
 				wipe.Type, wipe.Temporary ? "yes" : "no", wipe.NextWipeCron, wipe.WipeCommands.ToString("->"));
 		}
+
 		arg.ReplyWith(table.ToStringMinimal());
 	}
 
@@ -186,13 +193,14 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 			              "eg. autowipe.add \"<WipeName>\" \"<MapUrl>\" \"<MapSize>\" \"<ServerSeed>\" \"<Type|0=fullwipe 1=mapwipe>\" \"<NextWipeCron>\" \"<WipeCommands>\"");
 			return;
 		}
+
 		ConfigInstance.Wipes.Add(new()
 		{
 			MapBrowserName = arg.GetString(0),
 			MapUrl = arg.GetString(1),
 			MapSize = arg.GetInt(2),
 			ServerSeed = arg.GetInt(3),
-			Type = (AutoWipeConfig.WipeTypes)arg.GetInt(4),
+			Type = (WipeTypes)arg.GetInt(4),
 			Temporary = arg.GetBool(5),
 			NextWipeCron = arg.GetString(6),
 			WipeCommands = arg.GetString(7).Split('|')
@@ -211,6 +219,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 			var wipe = ConfigInstance.MapPool[i];
 			table.AddRow(i + 1, wipe);
 		}
+
 		arg.ReplyWith(table.ToStringMinimal());
 	}
 
@@ -246,57 +255,18 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, EmptyModuleDa
 			              "eg. autowipe.addmap \"<MapUrl>\"");
 			return;
 		}
+
 		ConfigInstance.MapPool.Add(arg.GetString(0));
 		Save();
 		arg.ReplyWith("Added map url");
 	}
-}
 
-public class AutoWipeConfig
-{
-	public bool UseUtc = true;
-	public float WipeTick = 60f;
-	public WipeConfig FullWipe;
-	public WipeConfig MapWipe;
-	public List<string> MapPool = new();
-	public List<Wipe> Wipes = new();
-	[JsonProperty("PickOrder (0=next 1=prev 2=random)")]
-	public PickOrders PickOrder = PickOrders.Next;
-	public Wipe CurrentWipe;
-	public int NextPickIndex = -1;
-
-	public Wipe GetWipe()
+	[CommandVar("autowipe.tick")]
+	[AuthLevel(2)]
+	private float tick
 	{
-		if (Wipes.Count == 0)
-			return default;
-
-		switch (PickOrder)
-		{
-			case PickOrders.Next:
-				NextPickIndex++;
-				if (NextPickIndex >= Wipes.Count)
-					NextPickIndex = 0;
-				return Wipes[NextPickIndex];
-
-			case PickOrders.Previous:
-				NextPickIndex--;
-				if (NextPickIndex < 0)
-					NextPickIndex = Wipes.Count - 1;
-				return Wipes[NextPickIndex];
-			case PickOrders.Random:
-				return Wipes[NextPickIndex = Random.Range(0, Wipes.Count)];
-		}
-
-		return default;
-	}
-	public WipeConfig GetWipeConfig(Wipe wipe)
-	{
-		return wipe.Type switch
-		{
-			WipeTypes.FullWipe => FullWipe,
-			WipeTypes.MapWipe => MapWipe,
-			_ => default
-		};
+		get => ConfigInstance.Tick;
+		set => ConfigInstance.Tick = value;
 	}
 
 	public struct Wipe
@@ -307,8 +277,10 @@ public class AutoWipeConfig
 		public string MapUrl;
 		public int MapSize;
 		public int ServerSeed;
+
 		[JsonProperty("Type (0=fullwipe 1=mapwipe)")]
 		public WipeTypes Type;
+
 		public bool Temporary;
 		public string NextWipeCron;
 
@@ -343,7 +315,7 @@ public class AutoWipeConfig
 			return (WipeName, MapBrowserName, MapUrl, MapSize, ServerSeed, Type, Temporary, NextWipeCron).GetHashCode();
 		}
 
-		public bool IsDue(bool useUtc)
+		public bool IsDue()
 		{
 			if (string.IsNullOrEmpty(NextWipeCron))
 			{
@@ -355,8 +327,9 @@ public class AutoWipeConfig
 			{
 				return false;
 			}
+
 			split[0] = "*";
-			var time = useUtc ? DateTime.UtcNow : DateTime.Now;
+			var time = DateTime.UtcNow;
 			var cron = CronExpression.Parse(split.ToString(" "));
 			var occurence = cron.GetNextOccurrence(time);
 
@@ -391,4 +364,57 @@ public class AutoWipeConfig
 		Previous,
 		Random
 	}
+}
+
+public class AutoWipeConfig
+{
+	public float Tick = 60f;
+	public AutoWipeModule.WipeConfig FullWipe;
+	public AutoWipeModule.WipeConfig MapWipe;
+	public List<string> MapPool = new();
+	public List<AutoWipeModule.Wipe> Wipes = new();
+	[JsonProperty("PickOrder (0=next 1=prev 2=random)")]
+	public AutoWipeModule.PickOrders PickOrder = AutoWipeModule.PickOrders.Next;
+
+	public AutoWipeModule.Wipe GetWipe(AutoWipeData data)
+	{
+		if (Wipes.Count == 0)
+			return default;
+
+		switch (PickOrder)
+		{
+			case AutoWipeModule.PickOrders.Next:
+				data.NextPickIndex++;
+				if (data.NextPickIndex >= Wipes.Count)
+					data.NextPickIndex = 0;
+				return Wipes[data.NextPickIndex];
+
+			case AutoWipeModule.PickOrders.Previous:
+				data.NextPickIndex--;
+				if (data.NextPickIndex < 0)
+					data.NextPickIndex = Wipes.Count - 1;
+				return Wipes[data.NextPickIndex];
+			case AutoWipeModule.PickOrders.Random:
+				return Wipes[data.NextPickIndex = Random.Range(0, Wipes.Count)];
+		}
+
+		return default;
+	}
+	public AutoWipeModule.WipeConfig GetWipeConfig(AutoWipeModule.Wipe wipe)
+	{
+		return wipe.Type switch
+		{
+			AutoWipeModule.WipeTypes.FullWipe => FullWipe,
+			AutoWipeModule.WipeTypes.MapWipe => MapWipe,
+			_ => default
+		};
+	}
+
+}
+
+public class AutoWipeData
+{
+	public long timeSinceLastWipe;
+	public AutoWipeModule.Wipe CurrentWipe;
+	public int NextPickIndex = -1;
 }
