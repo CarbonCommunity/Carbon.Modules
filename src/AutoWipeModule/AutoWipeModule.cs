@@ -23,13 +23,13 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	private readonly float wipeCooldown = 60 * 60;
 	private Timer wipeTimer;
 
-	public bool InCooldown() => (DateTime.UtcNow - new DateTime(DataInstance.timeSinceLastWipe)).TotalSeconds <= wipeCooldown;
+	public bool InCooldown() => (DateTime.UtcNow - new DateTime(DataInstance.LastWipeTick)).TotalSeconds <= wipeCooldown;
 
 	public override void Load()
 	{
 		base.Load();
 
-		if (!IsEnabled() || InCooldown())
+		if (!IsEnabled())
 		{
 			return;
 		}
@@ -43,13 +43,13 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		ConfigInstance.MapPool ??= new();
 
 		var currentWipe = DataInstance.CurrentWipe;
-		var wipe = DataInstance.CurrentWipe.IsValid ? DataInstance.CurrentWipe : ConfigInstance.GetWipe(DataInstance);
+		var wipe = DataInstance.CurrentWipe.IsValid || InCooldown() ? DataInstance.CurrentWipe : ConfigInstance.GetWipe(DataInstance);
 		var justWiped = !currentWipe.Equals(wipe);
 		var config = ConfigInstance.GetWipeConfig(wipe);
 
-		if (wipe.IsDue())
+		if (!InCooldown() && wipe.IsDue())
 		{
-			DataInstance.timeSinceLastWipe = DateTime.UtcNow.Ticks;
+			DataInstance.LastWipeTick = DateTime.UtcNow.Ticks;
 			wipe = ConfigInstance.GetWipe(DataInstance);
 			config = ConfigInstance.GetWipeConfig(wipe);
 			justWiped = true;
@@ -155,7 +155,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			var wipe = ConfigInstance.Wipes[i];
 			table.AddRow(i + 1, wipe.WipeName, wipe.MapUrl, wipe.MapSize,
 				wipe.ServerSeed == 0 ? "random" : wipe.ServerSeed,
-				wipe.Type, wipe.Temporary ? "yes" : "no", wipe.NextWipeCron, wipe.WipeCommands.ToString("->"));
+				wipe.Type, wipe.Temporary ? "yes" : "no", wipe.NextWipeCron, wipe.WipeCommands?.ToString("->"));
 		}
 
 		arg.ReplyWith(table.ToStringMinimal());
@@ -409,12 +409,11 @@ public class AutoWipeConfig
 			_ => default
 		};
 	}
-
 }
 
 public class AutoWipeData
 {
-	public long timeSinceLastWipe;
 	public AutoWipeModule.Wipe CurrentWipe;
 	public int NextPickIndex = -1;
+	public long LastWipeTick;
 }
