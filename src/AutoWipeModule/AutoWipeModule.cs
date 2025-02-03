@@ -15,6 +15,7 @@ namespace Carbon.Modules;
 
 public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 {
+	// test PR
 	public override string Name => "AutoWipe";
 	public override VersionNumber Version => new(1, 0, 1);
 	public override Type Type => typeof(AutoWipeModule);
