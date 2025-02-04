@@ -15,8 +15,9 @@ namespace Carbon.Modules;
 
 public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 {
+	// test PR
 	public override string Name => "AutoWipe";
-	public override VersionNumber Version => new(1, 0, 0);
+	public override VersionNumber Version => new(1, 0, 1);
 	public override Type Type => typeof(AutoWipeModule);
 	public override bool EnabledByDefault => false;
 
@@ -183,14 +184,14 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		arg.ReplyWith("Removed wipe");
 	}
 
-	[ConsoleCommand("autowipe.add", "Adds a new wipe to the list. (Syntax eg. autowipe.add \"<WipeName>\" \"<MapUrl>\" \"<MapSize>\" \"<ServerSeed>\" \"<Type|0=fullwipe 1=mapwipe>\" \"<NextWipeCron>\" \"<WipeCommands>\")")]
+	[ConsoleCommand("autowipe.add", "Adds a new wipe to the list.")]
 	[AuthLevel(2)]
 	private void add_wipe(ConsoleSystem.Arg arg)
 	{
 		if (!arg.HasArgs(7))
 		{
 			arg.ReplyWith("You've got missing arguments. Please make sure to follow the following syntax:\n" +
-			              "eg. autowipe.add \"<WipeName>\" \"<MapUrl>\" \"<MapSize>\" \"<ServerSeed>\" \"<Type|0=fullwipe 1=mapwipe>\" \"<NextWipeCron>\" \"<WipeCommands>\"");
+			              "eg. autowipe.add \"<WipeName>\" \"<MapUrl>\" \"<MapSize>\" \"<ServerSeed>\" \"<Type|0=fullwipe 1=mapwipe>\" \"<Temporary|True/False>\" \"<NextWipeCron>\" \"<WipeCommands>\"");
 			return;
 		}
 
@@ -242,21 +243,31 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 		ConfigInstance.Wipes.RemoveAt(i);
 		Save();
-		arg.ReplyWith("Removed map url");
+		arg.ReplyWith("Removed map URL");
 	}
 
-	[ConsoleCommand("autowipe.addmap", "Adds a new map url to the list. (Syntax eg. autowipe.addmap \"<MapUrl>\"")]
+	[ConsoleCommand("autowipe.addmap", "Adds a new map URLs to the list.")]
 	[AuthLevel(2)]
 	private void add_map(ConsoleSystem.Arg arg)
 	{
-		if (!arg.HasArgs(7))
+		if (!arg.HasArgs())
 		{
 			arg.ReplyWith("You've got missing arguments. Please make sure to follow the following syntax:\n" +
 			              "eg. autowipe.addmap \"<MapUrl>\"");
 			return;
 		}
 
-		ConfigInstance.MapPool.Add(arg.GetString(0));
+		for(int i = 0; i < arg.Args.Length; i++)
+		{
+			var map = arg.Args[i];
+			if (ConfigInstance.MapPool.Contains(map))
+			{
+				arg.ReplyWith($"Map url '{map}' already exists in the pool");
+				continue;
+			}
+
+			ConfigInstance.MapPool.Add(map);
+		}
 		Save();
 		arg.ReplyWith("Added map url");
 	}
