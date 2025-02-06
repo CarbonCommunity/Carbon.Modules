@@ -37,7 +37,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 		if (InCooldown())
 		{
-			DataInstance.Wipe?.InitWorld(ConfigInstance.MapPool);
+			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps);
 			return;
 		}
 
@@ -65,7 +65,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 			DataInstance.Wipe ??= new();
 			wipe.CloneTo(DataInstance.Wipe);
-			DataInstance.Wipe?.InitWorld(ConfigInstance.MapPool);
+			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps);
 
 			using var table = new StringTable("wipename", "seed", "size", "url");
 			table.AddRow(wipe.WipeName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
@@ -107,7 +107,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 		else
 		{
-			DataInstance.Wipe?.InitWorld(ConfigInstance.MapPool);
+			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps);
 		}
 	}
 
@@ -122,9 +122,9 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	{
 		var invalidConfigCorrected = false;
 
-		if (ConfigInstance.MapPool == null)
+		if (ConfigInstance.Maps == null)
 		{
-			ConfigInstance.MapPool = new();
+			ConfigInstance.Maps = new();
 			invalidConfigCorrected = true;
 		}
 
@@ -241,11 +241,11 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	[AuthLevel(2)]
 	private void print_maps(ConsoleSystem.Arg arg)
 	{
-		using var table = new StringTable("", "mapurl");
-		for (int i = 0; i < ConfigInstance.MapPool.Count; i++)
+		using var table = new StringTable("", "mapurl", "temporary");
+		for (int i = 0; i < ConfigInstance.Maps.Count; i++)
 		{
-			var wipe = ConfigInstance.MapPool[i];
-			table.AddRow(i + 1, wipe);
+			var wipe = ConfigInstance.Maps[i];
+			table.AddRow(i + 1, wipe.Url, wipe.Temp ? "temp" : "standard");
 		}
 
 		arg.ReplyWith(table.ToStringMinimal());
@@ -280,21 +280,24 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		if (!arg.HasArgs())
 		{
 			arg.ReplyWith("You've got missing arguments. Please make sure to follow the following syntax:\n" +
-			              "eg. autowipe.addmap \"<MapUrl>\"");
+			              "eg. autowipe.addmap \"<MapUrl>\" \"<Temp|True/False>\"");
 			return;
 		}
 
-		for(int i = 0; i < arg.Args.Length; i++)
-		{
-			var map = arg.Args[i];
-			if (ConfigInstance.MapPool.Contains(map))
-			{
-				arg.ReplyWith($"Map url '{map}' already exists in the pool");
-				continue;
-			}
+		var url = arg.GetString(0);
+		var temp = arg.GetBool(1);
 
-			ConfigInstance.MapPool.Add(map);
+		if (ConfigInstance.Maps.Any(x => x.Url.Equals(url, StringComparison.OrdinalIgnoreCase)))
+		{
+			arg.ReplyWith($"Map url '{url}' already exists in the pool");
+			return;
 		}
+
+		ConfigInstance.Maps.Add(new WipeMap
+		{
+			Url = url,
+			Temp = temp
+		});
 		Save();
 		arg.ReplyWith("Added map url");
 	}
@@ -326,12 +329,23 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			other.Type = Type;
 		}
 
-		public void InitWorld(List<string> mapPool)
+		public void InitWorld(List<WipeMap> maps)
 		{
 #if !MINIMAL
 			Community.Runtime.Core.CustomMapName = string.IsNullOrEmpty(MapBrowserName) ? "-1" : MapBrowserName;
 #endif
-			World.Url = ConVar.Server.levelurl = MapUrl == "POOL" ? (MapUrl = mapPool[Random.Range(0, mapPool.Count)]) : MapUrl;
+			if (MapUrl == "POOL")
+			{
+				var randomIndex = Random.Range(0, maps.Count);
+				var map = maps[randomIndex];
+				MapUrl = map.Url;
+				if (map.Temp)
+				{
+					maps.RemoveAt(randomIndex);
+				}
+			}
+
+			World.Url = ConVar.Server.levelurl = MapUrl;
 			if (MapSize != 0)
 				World.InitSize(ConVar.Server.worldsize = MapSize);
 			if (ServerSeed == 0)
@@ -388,6 +402,12 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		public string[] PostWipeDeletes;
 	}
 
+	public struct WipeMap
+	{
+		public string Url;
+		public bool Temp;
+	}
+
 	public enum WipeTypes
 	{
 		FullWipe,
@@ -399,7 +419,7 @@ public class AutoWipeConfig
 {
 	public AutoWipeModule.WipeConfig FullWipe;
 	public AutoWipeModule.WipeConfig MapWipe;
-	public List<string> MapPool = new();
+	public List<AutoWipeModule.WipeMap> Maps = new();
 	public List<AutoWipeModule.Wipe> AvailableWipes = new();
 
 	public AutoWipeModule.WipeConfig GetWipeConfig(AutoWipeModule.Wipe wipe)
