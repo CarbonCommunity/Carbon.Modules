@@ -30,7 +30,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	{
 		base.Load();
 
-		if (!IsEnabled())
+		if (!IsEnabled() || Community.IsServerInitialized)
 		{
 			return;
 		}
