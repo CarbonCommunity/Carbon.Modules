@@ -115,7 +115,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		effectInstance.WriteToStream(netWrite);
 		netWrite.Send(new SendInfo(player.net.connection));
 
-		effectInstance.Clear();
+		effectInstance.Clear(true);
 	}
 
 	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true)
@@ -137,6 +137,8 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			temp.AddRange(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player));
 			player.OnNetworkSubscribersLeave(temp);
 			Pool.FreeUnmanaged(ref temp);
+
+			player.transform.localScale = Vector3.zero;
 
 			SimpleAIMemory.AddIgnorePlayer(player);
 
@@ -162,7 +164,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			}
 
 			var vanishObject = new GameObject("Vanish Collider");
-			vanishObject.transform.SetParent(player.transform);
+			vanishObject.transform.SetParent(player.transform, true);
 			vanishObject.AddComponent<VanishedPlayer>().Init(player);
 
 			// OnCarbonVanished
@@ -170,6 +172,8 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		}
 		else
 		{
+			player.transform.localScale = Vector3.one;
+
 			player.ResetAntiHack();
 			player._limitedNetworking = false;
 
