@@ -6,7 +6,6 @@ using Carbon.Components;
 using Carbon.Extensions;
 using Newtonsoft.Json;
 using Oxide.Core;
-using Rust;
 using Cronos;
 using Oxide.Plugins;
 using Random = UnityEngine.Random;
@@ -60,7 +59,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 			if (wipe.Temp)
 			{
-				ConfigInstance.Wipes.Remove(wipe);
+				ConfigInstance.AvailableWipes.Remove(wipe);
 				PutsWarn($"Removed map from list");
 			}
 
@@ -162,9 +161,9 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 	private Wipe GetUpcomingAvailableWipeImpl()
 	{
-		for (int i = 0; i < ConfigInstance.Wipes.Count; i++)
+		for (int i = 0; i < ConfigInstance.AvailableWipes.Count; i++)
 		{
-			var wipe = ConfigInstance.Wipes[i];
+			var wipe = ConfigInstance.AvailableWipes[i];
 			if (wipe.ShouldWipe())
 			{
 				return wipe;
@@ -178,9 +177,9 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	private void print_wipes(ConsoleSystem.Arg arg)
 	{
 		using var table = new StringTable("#", "wipename", "mapurl", "mapsize", "serverseed", "type", "temp", "nextwipe", "wipecommands");
-		for (int i = 0; i < ConfigInstance.Wipes.Count; i++)
+		for (int i = 0; i < ConfigInstance.AvailableWipes.Count; i++)
 		{
-			var wipe = ConfigInstance.Wipes[i];
+			var wipe = ConfigInstance.AvailableWipes[i];
 			table.AddRow(i + 1, wipe.WipeName, wipe.MapUrl, wipe.MapSize,
 				wipe.ServerSeed == 0 ? "random" : wipe.ServerSeed,
 				wipe.Type, wipe.Temp ? "yes" : "no", wipe.Cron, wipe.Commands?.ToString("->"));
@@ -200,13 +199,13 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 
 		var i = arg.GetInt(0) - 1;
-		if (i < 0 || i >= ConfigInstance.Wipes.Count)
+		if (i < 0 || i >= ConfigInstance.AvailableWipes.Count)
 		{
 			arg.ReplyWith("Went above or below indexes available. Use numbers from 'autowipe.wipes`'");
 			return;
 		}
 
-		ConfigInstance.Wipes.RemoveAt(i);
+		ConfigInstance.AvailableWipes.RemoveAt(i);
 		Save();
 		arg.ReplyWith("Removed wipe");
 	}
@@ -222,7 +221,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			return;
 		}
 
-		ConfigInstance.Wipes.Add(new()
+		ConfigInstance.AvailableWipes.Add(new()
 		{
 			WipeName = arg.GetString(0),
 			MapBrowserName = arg.GetString(1),
@@ -263,13 +262,13 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 
 		var i = arg.GetInt(0);
-		if (i < 0 || i >= ConfigInstance.Wipes.Count)
+		if (i < 0 || i >= ConfigInstance.AvailableWipes.Count)
 		{
 			arg.ReplyWith("Went above or below indexes available. Use numbers from 'autowipe.maps`'");
 			return;
 		}
 
-		ConfigInstance.Wipes.RemoveAt(i);
+		ConfigInstance.AvailableWipes.RemoveAt(i);
 		Save();
 		arg.ReplyWith("Removed map URL");
 	}
@@ -332,7 +331,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 #if !MINIMAL
 			Community.Runtime.Core.CustomMapName = string.IsNullOrEmpty(MapBrowserName) ? "-1" : MapBrowserName;
 #endif
-			World.Url = ConVar.Server.levelurl = MapUrl == "POOL" ? mapPool[Random.Range(0, mapPool.Count)] : MapUrl;
+			World.Url = ConVar.Server.levelurl = MapUrl == "POOL" ? (MapUrl = mapPool[Random.Range(0, mapPool.Count)]) : MapUrl;
 			if (MapSize != 0)
 				World.InitSize(ConVar.Server.worldsize = MapSize);
 			if (ServerSeed == 0)
@@ -401,7 +400,7 @@ public class AutoWipeConfig
 	public AutoWipeModule.WipeConfig FullWipe;
 	public AutoWipeModule.WipeConfig MapWipe;
 	public List<string> MapPool = new();
-	public List<AutoWipeModule.Wipe> Wipes = new();
+	public List<AutoWipeModule.Wipe> AvailableWipes = new();
 
 	public AutoWipeModule.WipeConfig GetWipeConfig(AutoWipeModule.Wipe wipe)
 	{
