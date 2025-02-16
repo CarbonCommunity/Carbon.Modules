@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Carbon.Base;
 using Facepunch.Rust;
-using Newtonsoft.Json;
 using Oxide.Core;
 using UnityEngine;
 using static BaseEntity;
@@ -36,8 +34,6 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 		Quarry = 2,
 		Excavator = 3
 	}
-
-	internal Item _processedItem;
 
 	public override void Init()
 	{
@@ -101,79 +97,26 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 	}
 	private void OnExcavatorGather(ExcavatorArm arm, Item item)
 	{
-		if (_processedItem == item)
-		{
-			return;
-		}
-
-		_processedItem = item;
-
 		item.amount = GetAmount(item.info, item.amount, KindTypes.Excavator);
 	}
 	private void OnQuarryGather(MiningQuarry quarry, Item item)
 	{
-		if (_processedItem == item)
-		{
-			return;
-		}
-
-		_processedItem = item;
-
 		item.amount = GetAmount(item.info, item.amount, KindTypes.Quarry);
 	}
 	private void OnGrowableGathered(GrowableEntity entity, Item item, BasePlayer player)
 	{
-		if (_processedItem == item)
-		{
-			return;
-		}
-
-		_processedItem = item;
-
 		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
 	private void OnDispenserBonus(ResourceDispenser dispenser, BasePlayer player, Item item)
 	{
-		if (_processedItem == item)
-		{
-			return;
-		}
-
-		_processedItem = item;
-
-		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
-	}
-	private void OnDispenserGather(ResourceDispenser dispenser, BasePlayer player, Item item)
-	{
-		if (_processedItem == item)
-		{
-			return;
-		}
-
-		_processedItem = item;
-
 		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
 	private void OnDispenserGather(ResourceDispenser dispenser, BaseEntity entity, Item item)
 	{
-		if (_processedItem == item)
-		{
-			return;
-		}
-
-		_processedItem = item;
-
 		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
 	private void OnFishCatch(Item item)
 	{
-		if (_processedItem == item)
-		{
-			return;
-		}
-
-		_processedItem = item;
-
 		item.amount = GetAmount(item.info, item.amount, KindTypes.Gather);
 	}
 
@@ -181,15 +124,15 @@ public partial class GatherManagerModule : CarbonModule<GatherManagerConfig, Emp
 
 	#region Helpers
 
-	internal Item ByID(int itemID, int amount, ulong skin, KindTypes kind)
+	private Item ByID(int itemID, int amount, ulong skin, KindTypes kind)
 	{
 		return ByDefinition(ItemManager.FindItemDefinition(itemID), amount, skin, kind);
 	}
-	internal Item ByDefinition(ItemDefinition itemDefinition, int amount, ulong skin, KindTypes kind)
+	private Item ByDefinition(ItemDefinition itemDefinition, int amount, ulong skin, KindTypes kind)
 	{
 		return ItemManager.Create(itemDefinition, GetAmount(itemDefinition, amount, kind), skin);
 	}
-	internal int GetAmount(ItemDefinition itemDefinition, int amount, KindTypes kind)
+	private int GetAmount(ItemDefinition itemDefinition, int amount, KindTypes kind)
 	{
 		var dictionary = kind switch
 		{
