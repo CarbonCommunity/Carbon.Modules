@@ -67,7 +67,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			wipe.CloneTo(DataInstance.Wipe);
 			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps);
 
-			using var table = new StringTable("wipename", "seed", "size", "url");
+			using var table = new StringTable("wipe name", "seed", "size", "url");
 			table.AddRow(wipe.WipeName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
 			PutsWarn($"New wipe detected!\n{table.ToStringMinimal()}");
 
@@ -176,7 +176,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	[AuthLevel(2)]
 	private void print_wipes(ConsoleSystem.Arg arg)
 	{
-		using var table = new StringTable("#", "wipename", "mapurl", "mapsize", "serverseed", "type", "temp", "nextwipe", "wipecommands");
+		using var table = new StringTable("#", "wipe name", "mapurl", "mapsize", "serverseed", "type", "temp", "nextwipe", "wipecommands");
 		for (int i = 0; i < ConfigInstance.AvailableWipes.Count; i++)
 		{
 			var wipe = ConfigInstance.AvailableWipes[i];
@@ -241,7 +241,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	[AuthLevel(2)]
 	private void print_maps(ConsoleSystem.Arg arg)
 	{
-		using var table = new StringTable("", "mapurl", "temporary");
+		using var table = new StringTable("", "map url", "temporary");
 		for (int i = 0; i < ConfigInstance.Maps.Count; i++)
 		{
 			var wipe = ConfigInstance.Maps[i];
