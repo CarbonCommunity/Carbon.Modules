@@ -360,7 +360,12 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	private void wipe_chat(ConsoleSystem.Arg arg)
 	{
 		var command = arg.GetString(0);
-		arg.ReplyWith(UpdateWipeChatCommand(ConfigInstance.WipeChatCommand, command) ? $"Updated Wipe chat command to '{command}'" : $"Wipe chat command has not been changed.");
+		var hasChanged = UpdateWipeChatCommand(ConfigInstance.WipeChatCommand, command);
+		arg.ReplyWith(hasChanged ? $"Updated Wipe chat command to '{command}'" : $"Wipe chat command has not been changed.");
+		if (hasChanged)
+		{
+			Save();
+		}
 	}
 
 	public class Wipe
