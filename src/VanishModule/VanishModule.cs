@@ -102,11 +102,14 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		return null;
 	}
 
-	public static void SendEffectTo(string effect, BasePlayer player)
+	private static void SendEffectTo(string effect, BasePlayer player)
 	{
-		if (player == null) return;
+		if (player == null)
+		{
+			return;
+		}
 
-		var effectInstance = new Effect();
+		var effectInstance = Effect.reusableInstace;
 		effectInstance.Init(Effect.Type.Generic, player, 0, Vector3.up, Vector3.zero);
 		effectInstance.pooledstringid = StringPool.Get(effect);
 
@@ -114,7 +117,6 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		netWrite.PacketID(Message.Type.Effect);
 		effectInstance.WriteToStream(netWrite);
 		netWrite.Send(new SendInfo(player.net.connection));
-
 		effectInstance.Clear();
 	}
 
@@ -240,7 +242,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		DoVanish(player, wants);
 	}
 
-	internal void _clearTriggers(BasePlayer player)
+	private void _clearTriggers(BasePlayer player)
 	{
 		if (player.triggers != null && player.triggers.Count > 0)
 		{
@@ -262,7 +264,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		});
 	}
 
-	internal void _drawUI(BasePlayer player)
+	private void _drawUI(BasePlayer player)
 	{
 		using var cui = new CUI(Handler);
 		var container = cui.CreateContainer("vanishui", parent: CUI.ClientPanels.Hud);
