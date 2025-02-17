@@ -115,7 +115,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		effectInstance.WriteToStream(netWrite);
 		netWrite.Send(new SendInfo(player.net.connection));
 
-		effectInstance.Clear(true);
+		effectInstance.Clear();
 	}
 
 	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true)
