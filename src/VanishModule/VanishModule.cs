@@ -101,7 +101,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		return null;
 	}
- test
+
 	private static void SendEffectTo(string effect, BasePlayer player)
 	{
 		if (player == null)
