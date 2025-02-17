@@ -46,6 +46,11 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			DataInstance.NextWipe = GetUpcomingAvailableWipeImpl();
 		}
 
+		if (!string.IsNullOrEmpty(ConfigInstance.WipeChatCommand))
+		{
+			UpdateWipeChatCommand(null, ConfigInstance.WipeChatCommand);
+		}
+
 		var currentWipe = DataInstance.Wipe;
 		var wipe = DataInstance.NextWipe ?? currentWipe;
 		var justWiped = wipe != null && !wipe.Equals(currentWipe);
@@ -111,6 +116,43 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 	}
 
+	public bool UpdateWipeChatCommand(string old, string current)
+	{
+		if (old == current)
+		{
+			return false;
+		}
+
+		var hasChanged = false;
+
+		if (!string.IsNullOrEmpty(old))
+		{
+			Community.Runtime.Core.cmd.RemoveChatCommand(old, this);
+			hasChanged = true;
+		}
+
+		if (!string.IsNullOrEmpty(current))
+		{
+			Community.Runtime.Core.cmd.AddChatCommand(current, this, nameof(WipeChat));
+			hasChanged = true;
+		}
+
+		return hasChanged;
+	}
+
+	private void WipeChat(BasePlayer player, string cmd, string[] args)
+	{
+		var nextWipe = GetUpcomingWipeImpl();
+		if (nextWipe.wipe == null)
+		{
+			player.ChatMessage($"No available wipe found");
+			return;
+		}
+
+		var result = (nextWipe.next.GetValueOrDefault() - DateTime.UtcNow).TotalSeconds;
+		player.ChatMessage($"Next wipe happens in <color=orange>{TimeEx.Format(result, false).ToLower()}</color>.");
+	}
+
 	public override void OnServerInit(bool initial)
 	{
 		base.OnServerInit(initial);
@@ -170,6 +212,17 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			}
 		}
 		return null;
+	}
+
+	private (Wipe wipe, DateTime? next) GetUpcomingWipeImpl()
+	{
+		var now = DateTime.UtcNow;
+		var nextRun = ConfigInstance.AvailableWipes.Select(job => (job, CronExpression.Parse(job.Cron).GetNextOccurrence(now, TimeZoneInfo.Utc)))
+			.Where(x => x.Item2.HasValue)
+			.OrderBy(x => x.Item2)
+			.FirstOrDefault();
+
+		return nextRun;
 	}
 
 	[ConsoleCommand("autowipe.wipes", "Prints all available wipes present in the Wipes config property.")]
@@ -302,6 +355,14 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		arg.ReplyWith("Added map url");
 	}
 
+	[ConsoleCommand("autowipe.wipechat", "Updates the wipe chat command.")]
+	[AuthLevel(2)]
+	private void wipe_chat(ConsoleSystem.Arg arg)
+	{
+		var command = arg.GetString(0);
+		arg.ReplyWith(UpdateWipeChatCommand(ConfigInstance.WipeChatCommand, command) ? $"Updated Wipe chat command to '{command}'" : $"Wipe chat command has not been changed.");
+	}
+
 	public class Wipe
 	{
 		public string WipeName;
@@ -417,6 +478,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 public class AutoWipeConfig
 {
+	public string WipeChatCommand;
 	public AutoWipeModule.WipeConfig FullWipe;
 	public AutoWipeModule.WipeConfig MapWipe;
 	public List<AutoWipeModule.WipeMap> Maps = new();
