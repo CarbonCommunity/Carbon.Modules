@@ -37,7 +37,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 		if (InCooldown())
 		{
-			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps);
+			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps, DataInstance.LastWipeTime);
 			return;
 		}
 
@@ -70,7 +70,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 			DataInstance.Wipe ??= new();
 			wipe.CloneTo(DataInstance.Wipe);
-			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps);
+			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps, DataInstance.LastWipeTime);
 
 			using var table = new StringTable("wipe name", "seed", "size", "url");
 			table.AddRow(wipe.WipeName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
@@ -112,7 +112,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 		else
 		{
-			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps);
+			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps, DataInstance.LastWipeTime);
 		}
 	}
 
@@ -395,7 +395,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			other.Type = Type;
 		}
 
-		public void InitWorld(List<WipeMap> maps)
+		public void InitWorld(List<WipeMap> maps, long lastWipe)
 		{
 #if !MINIMAL
 			Community.Runtime.Core.CustomMapName = string.IsNullOrEmpty(MapBrowserName) ? "-1" : MapBrowserName;
@@ -411,6 +411,13 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 				}
 			}
 
+			var lastWipeDate = new DateTime(lastWipe);
+			ConVar.Server.hostname = ConVar.Server.hostname
+				.Replace("[WIPE_DAY]", $"{lastWipeDate.Day}")
+				.Replace("[WIPE_MONTH]", $"{lastWipeDate.Month}")
+				.Replace("[WIPE_YEAR]", $"{lastWipeDate.Year}")
+				.Replace("[WIPE_HOUR]", $"{lastWipeDate.Hour}")
+				.Replace("[WIPE_MINUTE]", $"{lastWipeDate.Minute}");
 			World.Url = ConVar.Server.levelurl = MapUrl;
 			if (MapSize != 0)
 				World.InitSize(ConVar.Server.worldsize = MapSize);
