@@ -86,12 +86,6 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		return null;
 	}
-	private void OnPlayerConnected(BasePlayer player)
-	{
-		if (!_vanishedPlayers.ContainsKey(player.userID)) return;
-
-		DoVanish(player, true);
-	}
 	private object CanBradleyApcTarget(BradleyAPC apc, BasePlayer player)
 	{
 		if (_vanishedPlayers.ContainsKey(player.userID))
@@ -100,6 +94,14 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		}
 
 		return null;
+	}
+	private void OnPlayerSleepEnded(BasePlayer self)
+	{
+		if (!_vanishedPlayers.ContainsKey(self.userID))
+		{
+			return;
+		}
+		DoVanish(self, true);
 	}
 
 	public static void SendEffectTo(string effect, BasePlayer player)
