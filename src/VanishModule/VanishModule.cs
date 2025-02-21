@@ -106,7 +106,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		if (player == null) return;
 
-		var effectInstance = new Effect();
+		var effectInstance = Effect.reusableInstace;
 		effectInstance.Init(Effect.Type.Generic, player, 0, Vector3.up, Vector3.zero);
 		effectInstance.pooledstringid = StringPool.Get(effect);
 
