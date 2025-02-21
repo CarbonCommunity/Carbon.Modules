@@ -278,10 +278,13 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		if (!string.IsNullOrEmpty(ConfigInstance.InvisibleIconUrl))
 		{
-			var iconX = ConfigInstance.InvisibleIconAnchorX;
-			var iconY = ConfigInstance.InvisibleIconAnchorY;
+			var anchorMin = ConfigInstance.InvisibleIconMinAnchor;
+			var anchorMax = ConfigInstance.InvisibleIconMaxAnchor;
+			var offsetMin = ConfigInstance.InvisibleIconMinOffset;
+			var offsetMax = ConfigInstance.InvisibleIconMaxOffset;
 			cui.CreateClientImage(container, "vanishui", ConfigInstance.InvisibleIconUrl, ConfigInstance.InvisibleIconColor,
-				xMin: iconX[0], xMax: iconX[1], yMin: iconY[0], yMax: iconY[1]);
+				xMin: anchorMin[0], xMax: anchorMax[0], yMin: anchorMin[1], yMax: anchorMax[1],
+				OxMin: offsetMin[0], OxMax: offsetMax[0], OyMin: offsetMin[1], OyMax: offsetMax[1]);
 		}
 
 		cui.Send(container, player);
@@ -364,8 +367,10 @@ public class VanishConfig
 
 	public string InvisibleIconUrl = "";
 	public string InvisibleIconColor = "1 1 1 0.3";
-	public float[] InvisibleIconAnchorX = [0.175f, 0.22f];
-	public float[] InvisibleIconAnchorY = [0.017f, 0.08f];
+	public float[] InvisibleIconMinAnchor = [0.5f, 0];
+	public float[] InvisibleIconMaxAnchor = [0.5f, 0];
+	public float[] InvisibleIconMinOffset = [-350f, 15f];
+	public float[] InvisibleIconMaxOffset = [-250f, 125];
 
 	public EffectConfig Effect = new();
 
