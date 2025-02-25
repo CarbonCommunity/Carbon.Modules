@@ -90,7 +90,7 @@ public partial class WhitelistModule : CarbonModule<WhitelistConfig, EmptyModule
 		{
 			Permissions.GetUserData(playerId, true);
 
-			if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
+			if (Community.Runtime.Config.Permissions.AutoGrantPlayerGroup && !string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
 			{
 				Permissions.AddUserGroup(playerId, Community.Runtime.Config.Permissions.PlayerDefaultGroup);
 			}
