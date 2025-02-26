@@ -267,7 +267,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	internal void _drawUI(BasePlayer player)
 	{
 		using var cui = new CUI(Handler);
-		var container = cui.CreateContainer("vanishui", parent: CUI.ClientPanels.Hud);
+		var container = cui.CreateContainer("vanishui", parent: CUI.ClientPanels.Hud, destroyUi: "vanishui");
 		if (!string.IsNullOrEmpty(ConfigInstance.InvisibleText))
 		{
 			var textX = ConfigInstance.InvisibleTextAnchorX;
