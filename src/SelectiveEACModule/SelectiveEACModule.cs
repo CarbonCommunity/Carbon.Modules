@@ -72,7 +72,7 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 		{
 			permissions.GetUserData(id, true);
 
-			if (!string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
+			if (Community.Runtime.Config.Permissions.AutoGrantPlayerGroup && !string.IsNullOrEmpty(Community.Runtime.Config.Permissions.PlayerDefaultGroup))
 			{
 				permissions.AddUserGroup(id, Community.Runtime.Config.Permissions.PlayerDefaultGroup);
 			}
