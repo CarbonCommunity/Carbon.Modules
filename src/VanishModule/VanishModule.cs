@@ -45,6 +45,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		Permissions.RegisterPermission(ConfigInstance.VanishPermission, this);
 		Permissions.RegisterPermission(ConfigInstance.VanishUnlockWhileVanishedPermission, this);
+		Permissions.RegisterPermission(ConfigInstance.PermanentVanishPermission, this);
 
 		Community.Runtime.Core.cmd.AddCovalenceCommand(ConfigInstance.VanishCommand, this, nameof(Vanish), permissions: new [] { ConfigInstance.VanishPermission });
 	}
@@ -97,6 +98,12 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	}
 	private void OnPlayerSleepEnded(BasePlayer self)
 	{
+		if (Permissions.UserHasPermission(self.UserIDString, ConfigInstance.PermanentVanishPermission))
+		{
+			DoVanish(self, true);
+			return;
+		}
+
 		if (!_vanishedPlayers.ContainsKey(self.userID))
 		{
 			return;
@@ -106,7 +113,10 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 	public static void SendEffectTo(string effect, BasePlayer player)
 	{
-		if (player == null) return;
+		if (player == null)
+		{
+			return;
+		}
 
 		var effectInstance = Effect.reusableInstace;
 		effectInstance.Init(Effect.Type.Generic, player, 0, Vector3.up, Vector3.zero);
@@ -122,6 +132,25 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 	public void DoVanish(BasePlayer player, bool wants, bool withUI = true, bool toggleNoclip = true)
 	{
+		if (!wants && _vanishedPlayers.TryGetValue(player.userID, out var originalPosition))
+		{
+			if (Permissions.UserHasPermission(player.UserIDString, ConfigInstance.PermanentVanishPermission))
+			{
+				player.ChatMessage("You're permanently vanished due to your permission and/or group.");
+				return;
+			}
+
+			_vanishedPlayers.Remove(player.userID);
+			if (ConfigInstance.TeleportBackOnUnvanish)
+			{
+				player.Teleport(originalPosition);
+			}
+		}
+		else if(wants)
+		{
+			_vanishedPlayers.Add(player.userID, player.transform.position);
+		}
+
 		if (wants)
 		{
 			_clearTriggers(player);
@@ -226,20 +255,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 	private void Vanish(BasePlayer player, string cmd, string[] args)
 	{
-		var wants = false;
-
-		if (_vanishedPlayers.TryGetValue(player.userID, out var originalPosition))
-		{
-			_vanishedPlayers.Remove(player.userID);
-			if (ConfigInstance.TeleportBackOnUnvanish) player.Teleport(originalPosition);
-		}
-		else
-		{
-			_vanishedPlayers.Add(player.userID, player.transform.position);
-			wants = true;
-		}
-
-		DoVanish(player, wants);
+		DoVanish(player, !_vanishedPlayers.ContainsKey(player.userID));
 	}
 
 	internal void _clearTriggers(BasePlayer player)
@@ -353,6 +369,7 @@ public class VanishConfig
 
 	public string VanishPermission = "vanish.allow";
 	public string VanishUnlockWhileVanishedPermission = "vanish.unlock";
+	public string PermanentVanishPermission = "vanish.permanent";
 	public string VanishCommand = "vanish";
 	public bool ToggleNoclipOnVanish = true;
 	public bool ToggleNoclipOnUnvanish = false;
