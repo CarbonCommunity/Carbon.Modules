@@ -8,6 +8,7 @@ using HarmonyLib;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Core.Plugins;
 using Rust.Ai;
 using UnityEngine;
 
@@ -22,7 +23,6 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	public override VersionNumber Version => new(1, 0, 0);
 	public override bool ForceModded => false;
 	public override bool EnabledByDefault => false;
-	public override bool AutoPatch => true;
 
 	private readonly CUI.Handler Handler = new();
 
@@ -372,7 +372,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 	#region Patches
 
-	[HarmonyPatch(typeof(Item), nameof(Item.SetItemOwnership), typeof(BasePlayer), typeof(Translate.Phrase))]
+	[AutoPatch, HarmonyPatch(typeof(Item), nameof(Item.SetItemOwnership), typeof(BasePlayer), typeof(Translate.Phrase))]
 	public class OwnershipPatch
 	{
 		public static bool Prefix(BasePlayer player, Translate.Phrase reason)
