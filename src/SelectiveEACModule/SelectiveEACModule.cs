@@ -103,7 +103,7 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 	[AutoPatch, UsedImplicitly, HarmonyPatch(typeof(EACServer), nameof(EACServer.OnJoinGame))]
 	private class EACServer_OnJoinGame
 	{
-		[HarmonyPrefix, UsedImplicitly]
+		[UsedImplicitly]
 		private static bool Prefix(Connection connection)
 		{
 			try
@@ -127,7 +127,7 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 	[AutoPatch, UsedImplicitly, HarmonyPatch(typeof(ServerMgr), nameof(ServerMgr.JoinGame))]
 	private class ServerMgr_JoinGame
 	{
-		[HarmonyTranspiler, UsedImplicitly]
+		[UsedImplicitly]
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> op)
 		{
 			List<CodeInstruction> il = new(op);
