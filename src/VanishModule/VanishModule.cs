@@ -4,9 +4,11 @@ using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Facepunch;
+using HarmonyLib;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Core.Plugins;
 using Rust.Ai;
 using UnityEngine;
 
@@ -14,29 +16,31 @@ namespace Carbon.Modules;
 
 public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 {
+	private static VanishModule Singleton;
+
 	public override string Name => "Vanish";
 	public override Type Type => typeof(VanishModule);
 	public override VersionNumber Version => new(1, 0, 0);
 	public override bool ForceModded => false;
 	public override bool EnabledByDefault => false;
 
-	public readonly CUI.Handler Handler = new();
+	private readonly CUI.Handler Handler = new();
 
-	internal Dictionary<ulong, Vector3> _vanishedPlayers = new(500);
+	private Dictionary<ulong, Vector3> _vanishedPlayers = new(500);
 
-	internal readonly GameObjectRef _drownEffect = new() { guid = "28ad47c8e6d313742a7a2740674a25b5" };
-	internal readonly GameObjectRef _fallDamageEffect = new() { guid = "ca14ed027d5924003b1c5d9e523a5fce" };
-	internal readonly GameObjectRef _emptyEffect = new();
+	private readonly GameObjectRef _drownEffect = new() { guid = "28ad47c8e6d313742a7a2740674a25b5" };
+	private readonly GameObjectRef _fallDamageEffect = new() { guid = "ca14ed027d5924003b1c5d9e523a5fce" };
+	private readonly GameObjectRef _emptyEffect = new();
 
 	public override void OnServerInit(bool initial)
 	{
+		Singleton = this;
 		base.OnServerInit(initial);
 
 		if (!initial) return;
 
 		OnEnabled(true);
 	}
-
 	public override void OnEnabled(bool initialized)
 	{
 		base.OnEnabled(initialized);
@@ -60,6 +64,12 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 
 		_vanishedPlayers.Clear();
 	}
+
+	public bool IsPlayerVanished(ulong playerId) => _vanishedPlayers.ContainsKey(playerId);
+	public bool IsPlayerVanished(BasePlayer player) => player != null && _vanishedPlayers.ContainsKey(player.userID);
+
+	public Vector3 GetVanishedPlayerPosition(ulong playerId) => _vanishedPlayers.TryGetValue(playerId, out var position) ? position : Vector3.zero;
+	public Vector3 GetVanishedPlayerPosition(BasePlayer player) => player != null && _vanishedPlayers.TryGetValue(player.userID, out var position) ? position : Vector3.zero;
 
 	private object CanUseLockedEntity(BasePlayer player, BaseLock @lock)
 	{
@@ -359,6 +369,19 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			parent.OnEntityLeave(player);
 		}
 	}
+
+	#region Patches
+
+	[AutoPatch, HarmonyPatch(typeof(Item), nameof(Item.SetItemOwnership), typeof(BasePlayer), typeof(Translate.Phrase))]
+	public class OwnershipPatch
+	{
+		public static bool Prefix(BasePlayer player, Translate.Phrase reason)
+		{
+			return !Singleton.IsPlayerVanished(player);
+		}
+	}
+
+	#endregion
 }
 
 public class VanishConfig

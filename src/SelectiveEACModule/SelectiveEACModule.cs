@@ -7,6 +7,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using Network;
 using Oxide.Core;
+using Oxide.Core.Plugins;
 
 /*
  *
@@ -25,7 +26,6 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 	public override VersionNumber Version => new(1, 0, 0);
 	public override Type Type => typeof(SelectiveEACModule);
 	public override bool ForceModded => false;
-	public override bool AutoPatch => true;
 
 	public static readonly int DefaultEncryption = 1;
 
@@ -100,11 +100,9 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 
 	#region Patches
 
-	[HarmonyPatch(typeof(EACServer), nameof(EACServer.OnJoinGame))]
-	[UsedImplicitly]
+	[AutoPatch, UsedImplicitly, HarmonyPatch(typeof(EACServer), nameof(EACServer.OnJoinGame))]
 	private class EACServer_OnJoinGame
 	{
-		[HarmonyPrefix]
 		[UsedImplicitly]
 		private static bool Prefix(Connection connection)
 		{
@@ -126,11 +124,9 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 		}
 	}
 
-	[HarmonyPatch(typeof(ServerMgr), nameof(ServerMgr.JoinGame))]
-	[UsedImplicitly]
+	[AutoPatch, UsedImplicitly, HarmonyPatch(typeof(ServerMgr), nameof(ServerMgr.JoinGame))]
 	private class ServerMgr_JoinGame
 	{
-		[HarmonyTranspiler]
 		[UsedImplicitly]
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> op)
 		{
