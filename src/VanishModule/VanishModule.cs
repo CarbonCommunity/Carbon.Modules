@@ -155,7 +155,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 				player.Teleport(originalPosition);
 			}
 		}
-		else if(wants)
+		else if(wants && !_vanishedPlayers.ContainsKey(player.userID))
 		{
 			_vanishedPlayers.Add(player.userID, player.transform.position);
 		}
