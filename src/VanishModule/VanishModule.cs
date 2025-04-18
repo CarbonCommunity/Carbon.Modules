@@ -155,7 +155,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 				player.Teleport(originalPosition);
 			}
 		}
-		else if(wants)
+		else if(wants && !_vanishedPlayers.ContainsKey(player.userID))
 		{
 			_vanishedPlayers.Add(player.userID, player.transform.position);
 		}
@@ -273,20 +273,21 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			foreach (var trigger in player.triggers)
 			{
-
 				trigger.OnEntityLeave(player);
 			}
 		}
 
-		using var helis = Entities.Get<PatrolHelicopter>();
-		helis.Each(heli =>
+		foreach (var heli in BaseEntity.serverEntities.OfType<PatrolHelicopter>())
 		{
-			if (heli.myAI == null || heli.myAI.strafe_target != player) return;
+			if (heli.myAI == null || heli.myAI.strafe_target != player)
+			{
+				continue;
+			}
 			Logger.Warn($"Patrol Helicopter at {heli.transform.position} ended player strafe for '{player.Connection}'");
 
 			heli.myAI.State_OrbitStrafe_Leave();
 			heli.myAI.State_Strafe_Leave();
-		});
+		}
 	}
 
 	private void _drawUI(BasePlayer player)
