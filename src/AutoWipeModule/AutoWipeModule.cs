@@ -14,6 +14,8 @@ namespace Carbon.Modules;
 
 public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 {
+	public static AutoWipeModule Singleton;
+
 	public override string Name => "AutoWipe";
 	public override VersionNumber Version => new(2, 0, 0);
 	public override Type Type => typeof(AutoWipeModule);
@@ -25,6 +27,12 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	private Timer wipeTimer;
 
 	public bool InCooldown() => (DateTime.UtcNow - new DateTime(DataInstance.LastWipeTime)).TotalSeconds <= wipeCooldown;
+
+	public override void Init()
+	{
+		base.Init();
+		Singleton = this;
+	}
 
 	public override void Load()
 	{
@@ -171,6 +179,26 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 
 		return invalidConfigCorrected;
+	}
+
+	private void RefreshHostName()
+	{
+		if (DataInstance == null || string.IsNullOrEmpty(ConVar.Server.hostname))
+		{
+			return;
+		}
+		var lastWipeDate = new DateTime(DataInstance.LastWipeTime);
+		ConVar.Server.hostname = ConVar.Server.hostname
+			.Replace("[WIPE_DAY]", $"{lastWipeDate.Day}")
+			.Replace("[WIPE_MONTH]", $"{lastWipeDate.Month}")
+			.Replace("[WIPE_YEAR]", $"{lastWipeDate.Year}")
+			.Replace("[WIPE_HOUR]", $"{lastWipeDate.Hour}")
+			.Replace("[WIPE_MINUTE]", $"{lastWipeDate.Minute}");
+	}
+
+	private void OnServerInformationUpdated()
+	{
+		RefreshHostName();
 	}
 
 	private void WipeTickImpl()
@@ -411,13 +439,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 				}
 			}
 
-			var lastWipeDate = new DateTime(lastWipe);
-			ConVar.Server.hostname = ConVar.Server.hostname
-				.Replace("[WIPE_DAY]", $"{lastWipeDate.Day}")
-				.Replace("[WIPE_MONTH]", $"{lastWipeDate.Month}")
-				.Replace("[WIPE_YEAR]", $"{lastWipeDate.Year}")
-				.Replace("[WIPE_HOUR]", $"{lastWipeDate.Hour}")
-				.Replace("[WIPE_MINUTE]", $"{lastWipeDate.Minute}");
+			Singleton.RefreshHostName();
 			World.Url = ConVar.Server.levelurl = MapUrl;
 			if (MapSize != 0)
 				World.InitSize(ConVar.Server.worldsize = MapSize);
