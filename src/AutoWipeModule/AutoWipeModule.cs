@@ -193,10 +193,12 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		if (!string.IsNullOrEmpty(ConVar.Server.hostname) && HasReplacements(ConVar.Server.hostname))
 		{
 			ConVar.Server.hostname = ProcessString(ConVar.Server.hostname, lastWipeDate);
+			PutsWarn("Updated server hostname replacements");
 		}
 		if (!string.IsNullOrEmpty(ConVar.Server.description) && HasReplacements(ConVar.Server.description))
 		{
 			ConVar.Server.description = ProcessString(ConVar.Server.description, lastWipeDate);
+			PutsWarn("Updated server description replacements");
 		}
 
 		return;
