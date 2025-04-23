@@ -183,17 +183,43 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 	private void RefreshHostName()
 	{
-		if (DataInstance == null || string.IsNullOrEmpty(ConVar.Server.hostname))
+		if (DataInstance == null)
 		{
 			return;
 		}
+
 		var lastWipeDate = new DateTime(DataInstance.LastWipeTime);
-		ConVar.Server.hostname = ConVar.Server.hostname
-			.Replace("[WIPE_DAY]", $"{lastWipeDate.Day}")
-			.Replace("[WIPE_MONTH]", $"{lastWipeDate.Month}")
-			.Replace("[WIPE_YEAR]", $"{lastWipeDate.Year}")
-			.Replace("[WIPE_HOUR]", $"{lastWipeDate.Hour}")
-			.Replace("[WIPE_MINUTE]", $"{lastWipeDate.Minute}");
+
+		if (!string.IsNullOrEmpty(ConVar.Server.hostname))
+		{
+			ConVar.Server.hostname = ConVar.Server.hostname
+				.Replace("[WIPE_DAY]", $"{lastWipeDate.Day}")
+				.Replace("[WIPE_MONTH]", $"{lastWipeDate.Month}")
+				.Replace("[WIPE_YEAR]", $"{lastWipeDate.Year}")
+				.Replace("[WIPE_HOUR]", $"{lastWipeDate.Hour}")
+				.Replace("[WIPE_MINUTE]", $"{lastWipeDate.Minute}");
+		}
+
+		if (!string.IsNullOrEmpty(ConVar.Server.hostname))
+		{
+			ConVar.Server.hostname = ProcessString(ConVar.Server.hostname, lastWipeDate);
+		}
+		if (!string.IsNullOrEmpty(ConVar.Server.description))
+		{
+			ConVar.Server.description = ProcessString(ConVar.Server.description, lastWipeDate);
+		}
+
+		return;
+
+		static string ProcessString(string source, DateTime time)
+		{
+			return source
+				.Replace("[WIPE_DAY]", $"{time.Day}")
+				.Replace("[WIPE_MONTH]", $"{time.Month}")
+				.Replace("[WIPE_YEAR]", $"{time.Year}")
+				.Replace("[WIPE_HOUR]", $"{time.Hour}")
+				.Replace("[WIPE_MINUTE]", $"{time.Minute}");
+		}
 	}
 
 	private void OnServerInformationUpdated()
