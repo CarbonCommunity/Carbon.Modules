@@ -192,16 +192,6 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 		if (!string.IsNullOrEmpty(ConVar.Server.hostname))
 		{
-			ConVar.Server.hostname = ConVar.Server.hostname
-				.Replace("[WIPE_DAY]", $"{lastWipeDate.Day}")
-				.Replace("[WIPE_MONTH]", $"{lastWipeDate.Month}")
-				.Replace("[WIPE_YEAR]", $"{lastWipeDate.Year}")
-				.Replace("[WIPE_HOUR]", $"{lastWipeDate.Hour}")
-				.Replace("[WIPE_MINUTE]", $"{lastWipeDate.Minute}");
-		}
-
-		if (!string.IsNullOrEmpty(ConVar.Server.hostname))
-		{
 			ConVar.Server.hostname = ProcessString(ConVar.Server.hostname, lastWipeDate);
 		}
 		if (!string.IsNullOrEmpty(ConVar.Server.description))
