@@ -14,6 +14,8 @@ namespace Carbon.Modules;
 
 public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 {
+	public static AutoWipeModule Singleton;
+
 	public override string Name => "AutoWipe";
 	public override VersionNumber Version => new(2, 0, 0);
 	public override Type Type => typeof(AutoWipeModule);
@@ -25,6 +27,12 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 	private Timer wipeTimer;
 
 	public bool InCooldown() => (DateTime.UtcNow - new DateTime(DataInstance.LastWipeTime)).TotalSeconds <= wipeCooldown;
+
+	public override void Init()
+	{
+		base.Init();
+		Singleton = this;
+	}
 
 	public override void Load()
 	{
@@ -171,6 +179,51 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 
 		return invalidConfigCorrected;
+	}
+
+	private void RefreshHostName()
+	{
+		if (DataInstance == null)
+		{
+			return;
+		}
+
+		var lastWipeDate = new DateTime(DataInstance.LastWipeTime);
+
+		if (!string.IsNullOrEmpty(ConVar.Server.hostname) && HasReplacements(ConVar.Server.hostname))
+		{
+			ConVar.Server.hostname = ProcessString(ConVar.Server.hostname, lastWipeDate);
+		}
+		if (!string.IsNullOrEmpty(ConVar.Server.description) && HasReplacements(ConVar.Server.description))
+		{
+			ConVar.Server.description = ProcessString(ConVar.Server.description, lastWipeDate);
+		}
+
+		return;
+
+		static string ProcessString(string source, DateTime time)
+		{
+			return source
+				.Replace("[WIPE_DAY]", $"{time.Day}")
+				.Replace("[WIPE_MONTH]", $"{time.Month}")
+				.Replace("[WIPE_YEAR]", $"{time.Year}")
+				.Replace("[WIPE_HOUR]", $"{time.Hour}")
+				.Replace("[WIPE_MINUTE]", $"{time.Minute}");
+		}
+
+		static bool HasReplacements(string source)
+		{
+			return source.Contains("[WIPE_DAY]") ||
+			       source.Contains("[WIPE_MONTH]") ||
+			       source.Contains("[WIPE_YEAR]") ||
+			       source.Contains("[WIPE_HOUR]") ||
+			       source.Contains("[WIPE_MINUTE]");
+		}
+	}
+
+	private void OnServerInformationUpdated()
+	{
+		RefreshHostName();
 	}
 
 	private void WipeTickImpl()
@@ -411,13 +464,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 				}
 			}
 
-			var lastWipeDate = new DateTime(lastWipe);
-			ConVar.Server.hostname = ConVar.Server.hostname
-				.Replace("[WIPE_DAY]", $"{lastWipeDate.Day}")
-				.Replace("[WIPE_MONTH]", $"{lastWipeDate.Month}")
-				.Replace("[WIPE_YEAR]", $"{lastWipeDate.Year}")
-				.Replace("[WIPE_HOUR]", $"{lastWipeDate.Hour}")
-				.Replace("[WIPE_MINUTE]", $"{lastWipeDate.Minute}");
+			Singleton.RefreshHostName();
 			World.Url = ConVar.Server.levelurl = MapUrl;
 			if (MapSize != 0)
 				World.InitSize(ConVar.Server.worldsize = MapSize);
