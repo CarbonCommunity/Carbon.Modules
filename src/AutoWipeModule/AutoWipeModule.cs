@@ -190,11 +190,11 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 		var lastWipeDate = new DateTime(DataInstance.LastWipeTime);
 
-		if (!string.IsNullOrEmpty(ConVar.Server.hostname))
+		if (!string.IsNullOrEmpty(ConVar.Server.hostname) && HasReplacements(ConVar.Server.hostname))
 		{
 			ConVar.Server.hostname = ProcessString(ConVar.Server.hostname, lastWipeDate);
 		}
-		if (!string.IsNullOrEmpty(ConVar.Server.description))
+		if (!string.IsNullOrEmpty(ConVar.Server.description) && HasReplacements(ConVar.Server.description))
 		{
 			ConVar.Server.description = ProcessString(ConVar.Server.description, lastWipeDate);
 		}
@@ -209,6 +209,15 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 				.Replace("[WIPE_YEAR]", $"{time.Year}")
 				.Replace("[WIPE_HOUR]", $"{time.Hour}")
 				.Replace("[WIPE_MINUTE]", $"{time.Minute}");
+		}
+
+		static bool HasReplacements(string source)
+		{
+			return source.Contains("[WIPE_DAY]") ||
+			       source.Contains("[WIPE_MONTH]") ||
+			       source.Contains("[WIPE_YEAR]") ||
+			       source.Contains("[WIPE_HOUR]") ||
+			       source.Contains("[WIPE_MINUTE]");
 		}
 	}
 
