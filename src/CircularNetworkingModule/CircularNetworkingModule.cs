@@ -85,7 +85,7 @@ public partial class CircularNetworkingModule : CarbonModule<EmptyModuleConfig, 
 
     static bool GetVisibleFromCircle(NetworkVisibilityGrid grid, Group group, ListHashSet<Group> groups, int radius)
     {
-        List<int>? lookup = GetCircleSizeLookup(radius);
+        List<int> lookup = GetCircleSizeLookup(radius);
         if (lookup == null)
             return true;
 
