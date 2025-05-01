@@ -108,6 +108,7 @@ public partial class StackManagerModule : CarbonModule<StackManagerConfig, Stack
 		{
 			ConfigInstance.Blacklist.Add("water");
 			ConfigInstance.Blacklist.Add("water.salt");
+			ConfigInstance.Blacklist.Add("water.radioactive");
 			return true;
 		}
 
