@@ -11,6 +11,6 @@ public partial class CircularNetworkingModule
 	[AutoPatch, HarmonyPatch(typeof(NetworkVisibilityGrid), "GetVisibleFrom")]
 	public class GetVisibleFrom : API.Hooks.Patch
 	{
-		public static bool Prefix(NetworkVisibilityGrid __instance, Group group, List<Group> groups, int radius) => GetVisibleFromCircle(__instance, group, groups, radius);
+		public static bool Prefix(NetworkVisibilityGrid __instance, Group group, ListHashSet<Group> groups, int radius) => GetVisibleFromCircle(__instance, group, groups, radius);
 	}
 }
