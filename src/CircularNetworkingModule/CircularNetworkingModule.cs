@@ -18,133 +18,134 @@ namespace Carbon.Modules;
 
 public partial class CircularNetworkingModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
-	public override string Name => "CircularNetworking";
-	public override VersionNumber Version => new(1, 0, 0);
-	public override Type Type => typeof(CircularNetworkingModule);
-	public override bool EnabledByDefault => false;
-	public override bool ForceDisabled => true;
+    public override string Name => "CircularNetworking";
+    public override VersionNumber Version => new(1, 0, 0);
+    public override Type Type => typeof(CircularNetworkingModule);
+    public override bool EnabledByDefault => false;
+    public override bool ForceDisabled => true;
 
-	internal int visibilityRadiusFarOverrideOriginal;
-	internal int visibilityRadiusNearOverrideOriginal;
+    internal int visibilityRadiusFarOverrideOriginal;
+    internal int visibilityRadiusNearOverrideOriginal;
 
-	private void CircularNetworkDistance() { }
+    private void CircularNetworkDistance() { }
 
-	public override void OnServerInit(bool initial)
-	{
-		base.OnServerInit(initial);
+    public override void OnServerInit(bool initial)
+    {
+        base.OnServerInit(initial);
 
-		if (!initial) return;
+        if (!initial) return;
 
-		OnEnabled(true);
-	}
-	public override void OnEnabled(bool initialized)
-	{
-		if (initialized)
-		{
-			visibilityRadiusFarOverrideOriginal = ConVar.Net.visibilityRadiusFarOverride;
-			visibilityRadiusNearOverrideOriginal = ConVar.Net.visibilityRadiusNearOverride;
-		}
+        OnEnabled(true);
+    }
+    public override void OnEnabled(bool initialized)
+    {
+        if (initialized)
+        {
+            visibilityRadiusFarOverrideOriginal = ConVar.Net.visibilityRadiusFarOverride;
+            visibilityRadiusNearOverrideOriginal = ConVar.Net.visibilityRadiusNearOverride;
+        }
 
-		if (ConVar.Net.visibilityRadiusFarOverride == -1)
-			ConVar.Net.visibilityRadiusFarOverride = 6;
+        if (ConVar.Net.visibilityRadiusFarOverride == -1)
+            ConVar.Net.visibilityRadiusFarOverride = 6;
 
-		if (ConVar.Net.visibilityRadiusNearOverride == -1)
-			ConVar.Net.visibilityRadiusNearOverride = 4;
+        if (ConVar.Net.visibilityRadiusNearOverride == -1)
+            ConVar.Net.visibilityRadiusNearOverride = 4;
 
-		base.OnEnabled(initialized);
-	}
-	public override void OnDisabled(bool initialized)
-	{
-		ConVar.Net.visibilityRadiusFarOverride = visibilityRadiusFarOverrideOriginal;
-		ConVar.Net.visibilityRadiusNearOverride = visibilityRadiusNearOverrideOriginal;
+        base.OnEnabled(initialized);
+    }
+    public override void OnDisabled(bool initialized)
+    {
+        ConVar.Net.visibilityRadiusFarOverride = visibilityRadiusFarOverrideOriginal;
+        ConVar.Net.visibilityRadiusNearOverride = visibilityRadiusNearOverrideOriginal;
 
-		base.OnDisabled(initialized);
-	}
+        base.OnDisabled(initialized);
+    }
 
-	private static readonly List<int> EightCircle = [2, 4, 6, 6, 7, 7, 8, 8, 8, 8, 8, 7, 7, 6, 6, 4, 2];
-	private static readonly List<int> SevenCircle = [2, 4, 5, 6, 6, 7, 7, 7, 7, 7, 6, 6, 5, 4, 2];
-	private static readonly List<int> SixCircle = [2, 4, 5, 5, 6, 6, 6, 6, 6, 5, 5, 4, 2];
-	private static readonly List<int> FiveCircle = [2, 3, 4, 5, 5, 5, 5, 5, 4, 3, 2];
-	private static readonly List<int> FourCircle = [2, 3, 4, 4, 4, 4, 4, 3, 2];
-	private static readonly List<int> ThreeCircle = [1, 2, 3, 3, 3, 2, 1];
-	private static readonly List<int> TwoCircle = [1, 2, 2, 2, 1];
+    private static readonly List<int> EightCircle = [2, 4, 6, 6, 7, 7, 8, 8, 8, 8, 8, 7, 7, 6, 6, 4, 2];
+    private static readonly List<int> SevenCircle = [2, 4, 5, 6, 6, 7, 7, 7, 7, 7, 6, 6, 5, 4, 2];
+    private static readonly List<int> SixCircle = [2, 4, 5, 5, 6, 6, 6, 6, 6, 5, 5, 4, 2];
+    private static readonly List<int> FiveCircle = [2, 3, 4, 5, 5, 5, 5, 5, 4, 3, 2];
+    private static readonly List<int> FourCircle = [2, 3, 4, 4, 4, 4, 4, 3, 2];
+    private static readonly List<int> ThreeCircle = [1, 2, 3, 3, 3, 2, 1];
+    private static readonly List<int> TwoCircle = [1, 2, 2, 2, 1];
 
-	static List<int> GetCircleSizeLookup(int radius)
-	{
-		return radius switch
-		{
-			8 => EightCircle,
-			7 => SevenCircle,
-			6 => SixCircle,
-			5 => FiveCircle,
-			4 => FourCircle,
-			3 => ThreeCircle,
-			2 => TwoCircle,
-			_ => null,
-		};
-	}
+    static List<int> GetCircleSizeLookup(int radius)
+    {
+        return radius switch
+        {
+            8 => EightCircle,
+            7 => SevenCircle,
+            6 => SixCircle,
+            5 => FiveCircle,
+            4 => FourCircle,
+            3 => ThreeCircle,
+            2 => TwoCircle,
+            _ => null,
+        };
+    }
 
-	static bool GetVisibleFromCircle(NetworkVisibilityGrid grid, Group group, List<Group> groups, int radius)
-	{
-		var lookup = GetCircleSizeLookup(radius);
+    static bool GetVisibleFromCircle(NetworkVisibilityGrid grid, Group group, ListHashSet<Group> groups, int radius)
+    {
+        List<int>? lookup = GetCircleSizeLookup(radius);
+        if (lookup == null)
+            return true;
 
-		if (lookup == null)
-			return true;
+        // Global netgroup
+        groups.Add(Net.sv.visibility.Get(0));
+        if (group.restricted)
+        {
+            groups.Add(group);
+            return false;
+        }
 
-		// Global netgroup
-		groups.Add(Net.sv.visibility.Get(0U));
-		if (group.restricted)
-		{
-			groups.Add(group);
-			return false;
-		}
-		int id = (int)group.ID;
-		if (id < grid.startID)
-			return false;
+        int id = (int)group.ID;
+        if (id < grid.startID)
+            return false;
 
-		ValueTuple<int, int, int> valueTuple = DeconstructGroupId(grid, id);
-		int item1 = valueTuple.Item1;
-		int item2 = valueTuple.Item2;
-		int item3 = valueTuple.Item3;
+        ValueTuple<int, int, int> valueTuple = DeconstructGroupId(grid, id);
+        int item1 = valueTuple.Item1;
+        int item2 = valueTuple.Item2;
+        int item3 = valueTuple.Item3;
 
-		for (int deltaY = -radius; deltaY <= radius; deltaY++)
-		{
-			int bounds = lookup[deltaY + radius];
-			for (int deltaX = -bounds; deltaX <= bounds; deltaX++)
-			{
-				AddLayers(grid, groups, item1 + deltaX, item2 + deltaY, item3);
-			}
-		}
-		return false;
-	}
+        for (int deltaY = -radius; deltaY <= radius; deltaY++)
+        {
+            int bounds = lookup[deltaY + radius];
+            for (int deltaX = -bounds; deltaX <= bounds; deltaX++)
+            {
+                AddLayers(grid, groups, item1 + deltaX, item2 + deltaY, item3);
+            }
+        }
+        return false;
+    }
 
-	private static ValueTuple<int, int, int> DeconstructGroupId(NetworkVisibilityGrid grid, int groupId)
-	{
-		groupId -= grid.startID;
-		var num2 = Math.DivRem(groupId, grid.cellCount * grid.cellCount, out var num);
-		return new ValueTuple<int, int, int>(Math.DivRem(num, grid.cellCount, out var num1), num1, num2);
-	}
+    private static ValueTuple<int, int, int> DeconstructGroupId(NetworkVisibilityGrid grid, int groupId)
+    {
+        int num;
+        int num1;
+        groupId -= grid.startID;
+        int num2 = Math.DivRem(groupId, grid.cellCount * grid.cellCount, out num);
+        return new ValueTuple<int, int, int>(Math.DivRem(num, grid.cellCount, out num1), num1, num2);
+    }
 
-	static void AddLayers(NetworkVisibilityGrid grid, List<Group> groups, int groupX, int groupY, int groupLayer)
-	{
-		Add(grid, groups, groupX, groupY, groupLayer);
+    static void AddLayers(NetworkVisibilityGrid grid, ListHashSet<Group> groups, int groupX, int groupY, int groupLayer)
+    {
+        Add(grid, groups, groupX, groupY, groupLayer);
+        if (groupLayer == 0)
+        {
+            Add(grid, groups, groupX, groupY, 1);
+        }
+        else if (groupLayer == 1)
+        {
+            Add(grid, groups, groupX, groupY, 2);
+            Add(grid, groups, groupX, groupY, 0);
+        }
+        else if (groupLayer == 2)
+        {
+            Add(grid, groups, groupX, groupY, 1);
+        }
+    }
 
-		if (groupLayer == 0)
-		{
-			Add(grid, groups, groupX, groupY, 1);
-		}
-		else if (groupLayer == 1)
-		{
-			Add(grid, groups, groupX, groupY, 2);
-			Add(grid, groups, groupX, groupY, 0);
-		}
-		else if (groupLayer == 2)
-		{
-			Add(grid, groups, groupX, groupY, 1);
-		}
-	}
+    static void Add(NetworkVisibilityGrid grid, ListHashSet<Group> groups, int groupX, int groupY, int groupLayer) => groups.Add(Net.sv.visibility.Get(CoordToID(grid, groupX, groupY, groupLayer)));
 
-	static void Add(NetworkVisibilityGrid grid, List<Group> groups, int groupX, int groupY, int groupLayer) => groups.Add(Net.sv.visibility.Get(CoordToID(grid, groupX, groupY, groupLayer)));
-
-	static uint CoordToID(NetworkVisibilityGrid grid, int x, int y, int layer) => (uint)(layer * (grid.cellCount * grid.cellCount) + x * grid.cellCount + y + grid.startID);
+    static uint CoordToID(NetworkVisibilityGrid grid, int x, int y, int layer) => (uint)(layer * (grid.cellCount * grid.cellCount) + x * grid.cellCount + y + grid.startID);
 }
