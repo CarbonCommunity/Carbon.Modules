@@ -22,7 +22,6 @@ public partial class CircularNetworkingModule : CarbonModule<EmptyModuleConfig, 
     public override VersionNumber Version => new(1, 0, 0);
     public override Type Type => typeof(CircularNetworkingModule);
     public override bool EnabledByDefault => false;
-    public override bool ForceDisabled => true;
 
     internal int visibilityRadiusFarOverrideOriginal;
     internal int visibilityRadiusNearOverrideOriginal;
