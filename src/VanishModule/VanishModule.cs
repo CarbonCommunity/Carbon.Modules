@@ -89,8 +89,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			if (!ConfigInstance.CanDamageWhenVanished && _vanishedPlayers.ContainsKey(attacker.userID))
 			{
-				var owner = BasePlayer.FindByID(hit.HitEntity.OwnerID);
-				player.ChatMessage($"You're vanished. You may not damage this entity owned by {owner?.displayName ?? hit.HitEntity.OwnerID.ToString()}.");
+				player.ChatMessage($"You're vanished. You may not damage this entity owned by {BasePlayer.FindByID(hit.HitEntity.OwnerID)?.displayName ?? hit.HitEntity.OwnerID.ToString()}.");
 				return false;
 			}
 		}
@@ -164,7 +163,10 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		{
 			_clearTriggers(player);
 
-			player.PauseFlyHackDetection();
+			player.PauseFlyHackDetection(float.MaxValue);
+			player.PauseSpeedHackDetection(float.MaxValue);
+			player.PauseTickDistanceDetection(float.MaxValue);
+			player.PauseVehicleNoClipDetection(float.MaxValue);
 			AntiHack.ShouldIgnore(player);
 
 			player.fallDamageEffect = _emptyEffect;
@@ -173,10 +175,9 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player._limitedNetworking = true;
 			player.DisablePlayerCollider();
 
-			var temp = Pool.Get<List<Connection>>();
+			using var temp = Pool.Get<PooledList<Connection>>();
 			temp.AddRange(Net.sv.connections.Where(connection => connection.connected && connection.isAuthenticated && connection.player is BasePlayer && connection.player != player));
 			player.OnNetworkSubscribersLeave(temp);
-			Pool.FreeUnmanaged(ref temp);
 
 			player.transform.localScale = Vector3.zero;
 
