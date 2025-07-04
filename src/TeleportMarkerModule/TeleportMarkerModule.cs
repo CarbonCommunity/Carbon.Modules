@@ -16,7 +16,7 @@ public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerModule, E
     public override Type Type => typeof(TeleportMarkerModule);
     public override bool ForceModded => false;
 
-    private readonly HashSet<string> _tpmUsers = [];
+    private readonly HashSet<ulong> _tpmUsers = [];
 
     private const string PermTpm = "teleportmarker.use";
 
@@ -29,7 +29,7 @@ public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerModule, E
 
     private void OnMapMarkerAdded(BasePlayer player, MapNote marker)
     {
-        if (_tpmUsers.Contains(player.UserIDString))
+        if (_tpmUsers.Contains(player.userID))
         {
             TeleportToMarker(player, marker);
         }
@@ -88,10 +88,10 @@ public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerModule, E
     {
 	    if (!CheckPermission(player, PermTpm)) return;
 
-        if (_tpmUsers.Contains(player.UserIDString))
+        if (_tpmUsers.Contains(player.userID))
         {
             player.ChatMessage("Teleport Marker disabled.");
-            _tpmUsers.Remove(player.UserIDString);
+            _tpmUsers.Remove(player.userID);
 
             if (_tpmUsers.Count == 0)
             {
@@ -107,6 +107,6 @@ public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerModule, E
         }
 
         player.ChatMessage("Teleport Marker enabled.");
-        _tpmUsers.Add(player.UserIDString);
+        _tpmUsers.Add(player.userID);
     }
 }
