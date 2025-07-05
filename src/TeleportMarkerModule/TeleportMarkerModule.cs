@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Carbon.Modules;
 
-public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerModule, EmptyModuleData>
+public partial class TeleportMarkerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
 {
     internal static WhitelistModule Singleton { get; set; }
 
@@ -20,11 +20,30 @@ public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerModule, E
 
     private const string PermTpm = "teleportmarker.use";
 
-    private void Init()
+    public override void OnEnabled(bool initialized)
     {
-        Community.Runtime.Core.permission.RegisterPermission(PermTpm, this);
-        Community.Runtime.Core.cmd.AddChatCommand("tpm", this, nameof(CmdTpm));
-        Unsubscribe(nameof(OnMapMarkerAdded));
+	    base.OnEnabled(initialized);
+
+	    if (!initialized) return;
+
+	    Community.Runtime.Core.permission.RegisterPermission(PermTpm, this);
+	    Community.Runtime.Core.cmd.AddChatCommand("tpm", this, nameof(CmdTpm));
+
+	    Unsubscribe(nameof(OnMapMarkerAdded));
+    }
+    public override void OnDisabled(bool initialized)
+    {
+	    base.OnDisabled(initialized);
+
+	    _tpmUsers.Clear();
+    }
+
+    private static void RemoveMarker(BasePlayer player, MapNote marker)
+    {
+	    player.State.pointsOfInterest.Remove(marker);
+	    marker.Dispose();
+	    player.DirtyPlayerState();
+	    player.SendMarkersToClient();
     }
 
     private void OnMapMarkerAdded(BasePlayer player, MapNote marker)
@@ -34,20 +53,11 @@ public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerModule, E
             TeleportToMarker(player, marker);
         }
     }
-
     private void TeleportToMarker(BasePlayer player, MapNote marker)
     {
         var position = marker.worldPosition + new Vector3(0, TerrainMeta.HeightMap.GetHeight(marker.worldPosition), 0);
         TeleportToPos(player, position);
         ServerMgr.Instance.Invoke(() => RemoveMarker(player, marker), 0.5f);
-    }
-
-    private static void RemoveMarker(BasePlayer player, MapNote marker)
-    {
-        player.State.pointsOfInterest.Remove(marker);
-        marker.Dispose();
-        player.DirtyPlayerState();
-        player.SendMarkersToClient();
     }
 
     private void TeleportToPos(BasePlayer player, Vector3 destination)
@@ -78,7 +88,6 @@ public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerModule, E
             ServerMgr.Instance.Invoke(player.EndSleeping, 0.5f);
         }
     }
-
     private bool CheckPermission(BasePlayer player, string perm)
     {
         return Community.Runtime.Core.permission.UserHasPermission(player.UserIDString, perm);
