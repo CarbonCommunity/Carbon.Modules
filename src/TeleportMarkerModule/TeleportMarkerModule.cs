@@ -7,10 +7,8 @@ using UnityEngine;
 
 namespace Carbon.Modules;
 
-public partial class TeleportMarkerModule : CarbonModule<EmptyModuleConfig, EmptyModuleData>
+public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerConfig, EmptyModuleData>
 {
-    internal static WhitelistModule Singleton { get; set; }
-
     public override string Name => "TeleportMarker";
     public override VersionNumber Version => new(1, 0, 0);
     public override Type Type => typeof(TeleportMarkerModule);
@@ -18,16 +16,14 @@ public partial class TeleportMarkerModule : CarbonModule<EmptyModuleConfig, Empt
 
     private readonly HashSet<ulong> _tpmUsers = [];
 
-    private const string PermTpm = "teleportmarker.use";
-
     public override void OnEnabled(bool initialized)
     {
 	    base.OnEnabled(initialized);
 
 	    if (!initialized) return;
 
-	    Community.Runtime.Core.permission.RegisterPermission(PermTpm, this);
-	    Community.Runtime.Core.cmd.AddChatCommand("tpm", this, nameof(CmdTpm));
+	    Permissions.RegisterPermission(ConfigInstance.TpmPermission, this);
+	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.TpmCommand, this, nameof(CmdTpm));
 
 	    Unsubscribe(nameof(OnMapMarkerAdded));
     }
@@ -95,7 +91,7 @@ public partial class TeleportMarkerModule : CarbonModule<EmptyModuleConfig, Empt
 
     private void CmdTpm(BasePlayer player, string command, string[] args)
     {
-	    if (!CheckPermission(player, PermTpm)) return;
+	    if (!CheckPermission(player, ConfigInstance.TpmPermission)) return;
 
         if (_tpmUsers.Contains(player.userID))
         {
@@ -118,4 +114,10 @@ public partial class TeleportMarkerModule : CarbonModule<EmptyModuleConfig, Empt
         player.ChatMessage("Teleport Marker enabled.");
         _tpmUsers.Add(player.userID);
     }
+}
+
+public class TeleportMarkerConfig
+{
+	public string TpmPermission = "teleportmarker.use";
+	public string TpmCommand = "tpm";
 }
