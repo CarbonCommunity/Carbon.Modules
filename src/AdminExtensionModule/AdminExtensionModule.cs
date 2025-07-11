@@ -30,7 +30,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Lock.Command, this, nameof(CmdLockPlayerInventory));
     }
 
-    private void CmdSpectate(BasePlayer player, string command, string[] args)
+    private void CmdSpectate(BasePlayer player, string _, string[] args)
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Spectate.Permission)) return;
 
@@ -50,7 +50,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 		AdminModule.StartSpectating(player, targetPlayer);
 	}
 
-	private void CmdBlind(BasePlayer player, string command, string[] args)
+	private void CmdBlind(BasePlayer player, string _, string[] args)
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Blind.Permission)) return;
 
@@ -71,7 +71,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 		player.ChatMessage($"Blinded {targetPlayer.displayName}.");
 	}
 
-	private void CmdEmpower(BasePlayer player, string command, string[] args)
+	private void CmdEmpower(BasePlayer player, string _, string[] args)
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Blind.Permission)) return;
 
@@ -86,7 +86,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 		player.ChatMessage($"Empowered {targetPlayer.displayName}.");
 	}
 
-	private void CmdPrivateMessage(BasePlayer player, string command, string[] args)
+	private void CmdPrivateMessage(BasePlayer player, string _, string[] args)
 	{
 		var targetPlayer = BasePlayer.Find(args[0]);
 		if (targetPlayer == null)
@@ -95,13 +95,13 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 			return;
 		}
 
-		string message = string.Join(" ", args, 1, args.Length - 1);
+		var message = string.Join(" ", args, 1, args.Length - 1);
 		AdminModule.PrivateMessagePlayer(player,targetPlayer, message);
 	}
 
-	private void CmdLockPlayerInventory(BasePlayer player, string command, string[] args)
+	private void CmdLockPlayerInventory(BasePlayer player, string _, string[] args)
 	{
-		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Blind.Permission)) return; // fuck you
+		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Lock.Permission)) return;
 
 		var targetPlayer = BasePlayer.Find(args[0]);
 		if (targetPlayer == null)
@@ -110,7 +110,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 			return;
 		}
 
-		bool wants = bool.Parse(args[2]);
+		var wants = bool.Parse(args[2]);
 
 		switch (args[1])
 		{
