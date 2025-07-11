@@ -84,14 +84,10 @@ public partial class TeleportMarkerModule : CarbonModule<TeleportMarkerConfig, E
             ServerMgr.Instance.Invoke(player.EndSleeping, 0.5f);
         }
     }
-    private bool CheckPermission(BasePlayer player, string perm)
-    {
-        return Community.Runtime.Core.permission.UserHasPermission(player.UserIDString, perm);
-    }
 
     private void CmdTpm(BasePlayer player, string command, string[] args)
     {
-	    if (!CheckPermission(player, ConfigInstance.TpmPermission)) return;
+	    if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.TpmPermission)) return;
 
         if (_tpmUsers.Contains(player.userID))
         {
