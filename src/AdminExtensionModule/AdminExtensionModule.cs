@@ -1,5 +1,6 @@
 ﻿using System;
 using Carbon.Base;
+using Carbon.Extensions;
 using Oxide.Core;
 
 namespace Carbon.Modules;
@@ -93,6 +94,8 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 	[Conditional("!MINIMAL")]
 	private void CmdPrivateMessage(BasePlayer player, string _, string[] args)
 	{
+		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.PrivateMessage.Permission)) return;
+
 		var targetPlayer = BasePlayer.Find(args[0]);
 		if (targetPlayer == null)
 		{
@@ -109,6 +112,12 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Lock.Permission)) return;
 
+		if (args == null || args.Length == 0)
+		{
+			player.ChatMessage($"No args provided.");
+			return;
+		}
+
 		var targetPlayer = BasePlayer.Find(args[0]);
 		if (targetPlayer == null)
 		{
@@ -116,23 +125,24 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 			return;
 		}
 
-		var wants = bool.Parse(args[2]);
+		var shouldToggle = args.Length <= 2;
+		var wants = args.Length > 2 && args[2].ToBool();
 
 		switch (args[1])
 		{
 			case "main":
-				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerMain, wants);
+				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerMain, shouldToggle ? !targetPlayer.inventory.containerMain.IsLocked() : wants);
 				break;
 			case "wear":
-				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerWear, wants);
+				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerWear, shouldToggle ? !targetPlayer.inventory.containerWear.IsLocked() : wants);
 				break;
 			case "belt":
-				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerBelt, wants);
+				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerBelt, shouldToggle ? !targetPlayer.inventory.containerBelt.IsLocked() : wants);
 				break;
 			case "all":
-				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerBelt, wants);
-				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerWear, wants);
-				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerMain, wants);
+				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerBelt, shouldToggle ? !targetPlayer.inventory.containerBelt.IsLocked() : wants);
+				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerWear, shouldToggle ? !targetPlayer.inventory.containerWear.IsLocked() : wants);
+				AdminModule.LockPlayerContainer(targetPlayer, targetPlayer.inventory.containerMain, shouldToggle ? !targetPlayer.inventory.containerMain.IsLocked() : wants);
 				break;
 			default:
 				player.ChatMessage($"Container '{args[0]}' not found.");
