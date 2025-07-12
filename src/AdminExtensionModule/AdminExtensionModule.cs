@@ -79,6 +79,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 	    }
     }
 
+    [Conditional("!MINIMAL")]
     private void OnMapMarkerAdded(BasePlayer player, MapNote marker)
     {
 	    if (_tpmUsers.Contains(player.userID))
