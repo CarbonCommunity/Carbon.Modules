@@ -11,6 +11,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
     public override Type Type => typeof(AdminExtensionModule);
     public override bool ForceModded => false;
 
+#if !MINIMAL
     public override void OnEnabled(bool initialized)
     {
 	    base.OnEnabled(initialized);
@@ -30,6 +31,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Lock.Command, this, nameof(CmdLockPlayerInventory));
     }
 
+    [Conditional("!MINIMAL")]
     private void CmdSpectate(BasePlayer player, string _, string[] args)
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Spectate.Permission)) return;
@@ -50,6 +52,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 		AdminModule.StartSpectating(player, targetPlayer);
 	}
 
+	[Conditional("!MINIMAL")]
 	private void CmdBlind(BasePlayer player, string _, string[] args)
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Blind.Permission)) return;
@@ -71,6 +74,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 		player.ChatMessage($"Blinded {targetPlayer.displayName}.");
 	}
 
+	[Conditional("!MINIMAL")]
 	private void CmdEmpower(BasePlayer player, string _, string[] args)
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Blind.Permission)) return;
@@ -86,6 +90,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 		player.ChatMessage($"Empowered {targetPlayer.displayName}.");
 	}
 
+	[Conditional("!MINIMAL")]
 	private void CmdPrivateMessage(BasePlayer player, string _, string[] args)
 	{
 		var targetPlayer = BasePlayer.Find(args[0]);
@@ -99,6 +104,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 		AdminModule.PrivateMessagePlayer(player,targetPlayer, message);
 	}
 
+	[Conditional("!MINIMAL")]
 	private void CmdLockPlayerInventory(BasePlayer player, string _, string[] args)
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Lock.Permission)) return;
@@ -133,7 +139,7 @@ public partial class AdminExtensionModule : CarbonModule<AdminExtensionConfig, E
 				return;
 		}
 	}
-
+#endif
 }
 
 public class AdminExtensionConfig
