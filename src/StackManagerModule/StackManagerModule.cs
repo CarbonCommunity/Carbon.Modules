@@ -31,6 +31,17 @@ public partial class StackManagerModule : CarbonModule<StackManagerConfig, Stack
 
 		if (!initialized || ItemManager.itemList == null) return;
 
+		var hasChanged = false;
+
+		foreach (var item in ItemManager.itemList.Where(item => !DataInstance.Items.ContainsKey(item.shortname)))
+		{
+			DataInstance.Items.Add(item.shortname, item.stackable);
+
+			hasChanged = true;
+		}
+
+		if (hasChanged) Save();
+
 		foreach (var category in ConfigInstance.Categories)
 		{
 			foreach (var item in ItemManager.itemList)
@@ -126,17 +137,6 @@ public partial class StackManagerModule : CarbonModule<StackManagerConfig, Stack
 		base.OnServerInit(initial);
 
 		if (!initial) return;
-
-		var hasChanged = false;
-
-		foreach (var item in ItemManager.itemList.Where(item => !DataInstance.Items.ContainsKey(item.shortname)))
-		{
-			DataInstance.Items.Add(item.shortname, item.stackable);
-
-			hasChanged = true;
-		}
-
-		if (hasChanged) Save();
 
 		OnEnabled(true);
 	}
