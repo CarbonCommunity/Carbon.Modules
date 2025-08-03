@@ -11,16 +11,15 @@ namespace Carbon.Modules;
 
 public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig, EmptyModuleData>
 {
-    public override string Name => "AdminExtension";
+    public override string Name => "AdminExtensions";
     public override VersionNumber Version => new(1, 0, 0);
     public override Type Type => typeof(AdminExtensionsModule);
     public override bool ForceModded => false;
 
+#if !MINIMAL
     private readonly HashSet<ulong> _tpmUsers = [];
-
     private const string NoReason = "No reason given";
 
-#if !MINIMAL
     public override void OnEnabled(bool initialized)
     {
 	    base.OnEnabled(initialized);
