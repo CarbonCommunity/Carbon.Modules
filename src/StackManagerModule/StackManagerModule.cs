@@ -148,7 +148,7 @@ public class StackManagerConfig
 	public float GlobalItemsMultiplier = 1f;
 	public bool ProhibitItemContainerStacking = false;
 	public bool ProhibitItemConsumableContainerStacking = true;
-	public bool ProhibitItemFishableStacking = true;
+	public bool ProhibitItemFishableStacking = false;
 
 	public Dictionary<ItemCategory, float> Categories = new()
 	{
