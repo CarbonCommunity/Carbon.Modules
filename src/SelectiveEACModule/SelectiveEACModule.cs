@@ -81,7 +81,7 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 		return Community.Runtime.Core.permission.UserHasPermission(id, Singleton.ConfigInstance.UsePermission) || Community.Runtime.Core.permission.UserHasGroup(id, Singleton.ConfigInstance.UseGroup);
 	}
 
-	private static int UserEncryptionOverride(Connection connection)
+	private static int UserEncryptionOverride(Network.Server sv, Connection connection)
 	{
 		try
 		{
@@ -136,11 +136,10 @@ public partial class SelectiveEACModule : CarbonModule<SelectiveEACConfig, Empty
 			{
 				var cil = il[i];
 
-				if (cil.opcode == OpCodes.Ldsfld && cil.operand is FieldInfo
+				if (cil.opcode == OpCodes.Ldfld && cil.operand is FieldInfo
 					{
 						Name: "encryption",
-						DeclaringType.Name: "Server",
-						DeclaringType.Namespace: "ConVar"
+						DeclaringType.Name: "Server"
 					})
 				{
 					cil.opcode = OpCodes.Ldarg_1;
