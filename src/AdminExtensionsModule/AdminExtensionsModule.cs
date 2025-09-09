@@ -20,6 +20,13 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
     private readonly HashSet<ulong> _tpmUsers = [];
     private const string NoReason = "No reason given";
 
+    public override void OnServerInit(bool initial)
+    {
+	    base.OnServerInit(initial);
+	    if (!initial) return;
+	    OnEnabled(true);
+    }
+
     public override void OnEnabled(bool initialized)
     {
 	    base.OnEnabled(initialized);
@@ -414,73 +421,73 @@ public class AdminExtensionsConfig
 	public CommandSettings Spectate = new()
 	{
 		Command = "spectate",
-		Permission = "adminextension.spectate"
+		Permission = "adminextensions.spectate"
 	};
 
 	public CommandSettings Blind = new()
 	{
 		Command = "blind",
-		Permission = "adminextension.blind"
+		Permission = "adminextensions.blind"
 	};
 
 	public CommandSettings Empower = new()
 	{
 		Command = "empower",
-		Permission = "adminextension.empower"
+		Permission = "adminextensions.empower"
 	};
 
 	public CommandSettings PrivateMessage = new()
 	{
 		Command = "cpm",
-		Permission = "adminextension.pm"
+		Permission = "adminextensions.pm"
 	};
 
 	public CommandSettings Lock = new()
 	{
 		Command = "lock",
-		Permission = "adminextension.lock"
+		Permission = "adminextensions.lock"
 	};
 
 	public CommandSettings TeleportMarker = new()
 	{
 		Command = "tpm",
-		Permission = "adminextension.tpm"
+		Permission = "adminextensions.tpm"
 	};
 
 	public CommandSettings Mute = new()
 	{
 		Command = "mute",
-		Permission = "adminextension.mute"
+		Permission = "adminextensions.mute"
 	};
 
 	public CommandSettings MuteList = new()
 	{
 		Command = "mutelist",
-		Permission = "adminextension.mutelist"
+		Permission = "adminextensions.mutelist"
 	};
 
 	public CommandSettings Ban = new()
 	{
 		Command = "ban",
-		Permission = "adminextension.ban"
+		Permission = "adminextensions.ban"
 	};
 
 	public CommandSettings Unban = new()
 	{
 		Command = "unban",
-		Permission = "adminextension.unban"
+		Permission = "adminextensions.unban"
 	};
 
 	public CommandSettings Kick = new()
 	{
 		Command = "kick",
-		Permission = "adminextension.kick"
+		Permission = "adminextensions.kick"
 	};
 
 	public CommandSettings ToggleCadmin = new()
 	{
 		Command = "cadmin",
-		Permission = "adminextension.cadmin"
+		Permission = "adminextensions.cadmin"
 	};
 
 }
