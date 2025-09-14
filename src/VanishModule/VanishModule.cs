@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Carbon.Base;
@@ -10,6 +10,7 @@ using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Plugins;
+using Rust;
 using Rust.Ai;
 using UnityEngine;
 
@@ -28,6 +29,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	private readonly CUI.Handler Handler = new();
 
 	private Dictionary<ulong, Vector3> _vanishedPlayers = new(500);
+	private BasePlayer _lastLooter;
 
 	private readonly GameObjectRef _drownEffect = new() { guid = "28ad47c8e6d313742a7a2740674a25b5" };
 	private readonly GameObjectRef _fallDamageEffect = new() { guid = "ca14ed027d5924003b1c5d9e523a5fce" };
@@ -119,6 +121,11 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			return;
 		}
 		DoVanish(self, true);
+	}
+
+	private void CanLootEntity(BasePlayer player, ContainerIOEntity container)
+	{
+		_lastLooter = player;
 	}
 
 	private static void SendEffectTo(string effect, BasePlayer player)
@@ -398,6 +405,34 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			    Singleton.Permissions.UserHasPermission(player.UserIDString, Singleton.ConfigInstance.VanishUnlockWhileVanishedPermission))
 			{
 				__result = true;
+				return false;
+			}
+
+			return true;
+		}
+	}
+
+	[AutoPatch, HarmonyPatch(typeof(StorageContainer), nameof(StorageContainer.ShouldRequireAuthIfNoCodelock))]
+	private static class StorageContainerPatch2
+	{
+		[UsedImplicitly]
+		[HarmonyPrefix]
+		private static bool Prefix(ref bool __result, BaseEntity container)
+		{
+			if (container is not ContainerIOEntity)
+				return true;
+
+			if (Singleton == null || !Singleton.IsEnabled())
+				return true;
+
+			var player = Singleton._lastLooter;
+			Singleton._lastLooter = null;
+
+			if (player != null &&
+			    Singleton.IsPlayerVanished(player) &&
+			    Singleton.Permissions.UserHasPermission(player.UserIDString, Singleton.ConfigInstance.VanishUnlockWhileVanishedPermission))
+			{
+				__result = false;
 				return false;
 			}
 
