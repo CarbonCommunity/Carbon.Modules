@@ -5,6 +5,7 @@ using Carbon.Base;
 using Carbon.Components;
 using Facepunch;
 using HarmonyLib;
+using JetBrains.Annotations;
 using Network;
 using Newtonsoft.Json;
 using Oxide.Core;
@@ -375,11 +376,32 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	#region Patches
 
 	[AutoPatch, HarmonyPatch(typeof(Item), nameof(Item.SetItemOwnership), typeof(BasePlayer), typeof(Translate.Phrase))]
-	public class OwnershipPatch
+	public static class OwnershipPatch
 	{
+		[UsedImplicitly]
 		public static bool Prefix(BasePlayer player, Translate.Phrase reason)
 		{
 			return !Singleton.IsPlayerVanished(player);
+		}
+	}
+
+	[AutoPatch, HarmonyPatch(typeof(StorageContainer), nameof(StorageContainer.CanBeLooted), typeof(BasePlayer))]
+	public static class StorageContainerPatch
+	{
+		[UsedImplicitly]
+		[HarmonyPrefix]
+		public static bool Prefix(ref bool __result, BasePlayer player)
+		{
+			if (player != null &&
+			    Singleton != null && Singleton.IsEnabled() &&
+			    Singleton.IsPlayerVanished(player) &&
+			    Singleton.Permissions.UserHasPermission(player.UserIDString, Singleton.ConfigInstance.VanishUnlockWhileVanishedPermission))
+			{
+				__result = true;
+				return false;
+			}
+
+			return true;
 		}
 	}
 
