@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Carbon.Base;
 using Carbon.Extensions;
+using Newtonsoft.Json;
 using Oxide.Core;
 using ProtoBuf;
 using UnityEngine;
@@ -33,8 +35,9 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 
 	    if (!initialized) return;
 
-	    Permissions.RegisterPermission(ConfigInstance.Spectate.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.Blind.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.NameFilter.BypassPermission, this);
+		Permissions.RegisterPermission(ConfigInstance.Spectate.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.Blind.Permission, this);
 	    Permissions.RegisterPermission(ConfigInstance.Empower.Permission, this);
 	    Permissions.RegisterPermission(ConfigInstance.PrivateMessage.Permission, this);
 	    Permissions.RegisterPermission(ConfigInstance.Lock.Permission, this);
@@ -100,7 +103,47 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 	    }
     }
 
-    [Conditional("!MINIMAL")]
+	[Conditional("!MINIMAL")]
+	private void OnPlayerConnected(BasePlayer player)
+	{
+		if (Permissions.UserHasPermission(player.UserIDString, ConfigInstance.NameFilter.BypassPermission))
+		{
+			return;
+		}
+
+		if (!ConfigInstance.NameFilter.IsValid(player.displayName, player.UserIDString) && ConfigInstance.NameFilter.TryRename(player.displayName, out var newName))
+		{
+			switch (ConfigInstance.NameFilter.Mode)
+			{
+				case AdminExtensionsConfig.NameFilterSettings.FilterModes.Rename:
+					var originalName = player.displayName;
+					player.AsIPlayer().Rename(newName);
+					Puts($"Updated {originalName}[{player.UserIDString}]'s name to {newName}");
+					break;
+			}
+		}
+	}
+
+	[Conditional("!MINIMAL")]
+	private object CanUserLogin(string username, string userid)
+	{
+		if (Permissions.UserHasPermission(userid, ConfigInstance.NameFilter.BypassPermission))
+		{
+			return null;
+		}
+
+		if (!ConfigInstance.NameFilter.IsValid(username, userid))
+		{
+			switch (ConfigInstance.NameFilter.Mode)
+			{
+				case AdminExtensionsConfig.NameFilterSettings.FilterModes.Kick:
+					return ConfigInstance.NameFilter.KickMessage;
+			}
+		}
+		return null;
+	}
+
+	[Conditional("!MINIMAL")]
     private void OnMapMarkerAdded(BasePlayer player, MapNote marker)
     {
 	    if (_tpmUsers.Contains(player.userID))
@@ -412,11 +455,60 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 
 public class AdminExtensionsConfig
 {
+	/*
+	 *
+	 * Copyright (c) 2025 Carbon Community
+	 * Copyright (c) 2025 headtapper
+	 * All rights reserved.
+	 *
+	 */
+	public class NameFilterSettings
+	{
+		[JsonProperty("Mode (0=None 1=Kick 2=Rename)")]
+		public FilterModes Mode;
+		public string BypassPermission = "adminextensions.namefilter.bypass";
+		public string CharacterWhitelist = "._- ";
+		public string KickMessage = "Your name must only contain English alphanumeric characters.";
+
+		public enum FilterModes
+		{
+			None,
+			Kick,
+			Rename
+		}
+
+		public bool IsCharacterValid(char character)
+		{
+			return char.IsLetterOrDigit(character) || CharacterWhitelist.Contains(character.ToString());
+		}
+
+		public bool IsValid(string displayName, string userId)
+		{
+			for (int i = 0; i < displayName.Length; i++)
+			{
+				var character = displayName[i];
+				if (!IsCharacterValid(character))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
+		public bool TryRename(string displayName, out string correctedName)
+		{
+			correctedName = string.Join(string.Empty, displayName.Where(x => IsCharacterValid(x)));
+			return displayName != correctedName;
+		}
+	}
+
 	public class CommandSettings
 	{
 		public string Command;
 		public string Permission;
 	}
+
+	public NameFilterSettings NameFilter = new();
 
 	public CommandSettings Spectate = new()
 	{
