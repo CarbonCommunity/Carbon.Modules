@@ -135,16 +135,11 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			return null;
 		}
 
-		if (!ConfigInstance.NameFilter.IsValid(username))
+		return (ConfigInstance.NameFilter.Mode, !ConfigInstance.NameFilter.IsValid(username)) switch
 		{
-			switch (ConfigInstance.NameFilter.Mode)
-			{
-				case AdminExtensionsConfig.NameFilterSettings.FilterModes.Kick:
-					return ConfigInstance.NameFilter.KickMessage;
-			}
-		}
-
-		return null;
+			(AdminExtensionsConfig.NameFilterSettings.FilterModes.Kick, _) => ConfigInstance.NameFilter.KickMessage,
+			_ => null
+		};
 	}
 
 	[Conditional("!MINIMAL")]
