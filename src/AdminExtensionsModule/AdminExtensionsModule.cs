@@ -113,7 +113,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			return;
 		}
 
-		if (!ConfigInstance.NameFilter.IsValid(player.displayName, player.UserIDString) &&
+		if (!ConfigInstance.NameFilter.IsValid(player.displayName) &&
 		    ConfigInstance.NameFilter.TryRename(player.displayName, out var newName))
 		{
 			switch (ConfigInstance.NameFilter.Mode)
@@ -135,7 +135,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			return null;
 		}
 
-		if (!ConfigInstance.NameFilter.IsValid(username, userid))
+		if (!ConfigInstance.NameFilter.IsValid(username))
 		{
 			switch (ConfigInstance.NameFilter.Mode)
 			{
@@ -496,7 +496,7 @@ public class AdminExtensionsConfig
 			return char.IsLetterOrDigit(character) || CharacterWhitelist.Contains(character.ToString());
 		}
 
-		public bool IsValid(string displayName, string userId)
+		public bool IsValid(string displayName)
 		{
 			for (int i = 0; i < displayName.Length; i++)
 			{
