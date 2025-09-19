@@ -13,95 +13,97 @@ namespace Carbon.Modules;
 
 public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig, EmptyModuleData>
 {
-    public override string Name => "AdminExtensions";
-    public override VersionNumber Version => new(1, 0, 0);
-    public override Type Type => typeof(AdminExtensionsModule);
-    public override bool ForceModded => false;
+	public override string Name => "AdminExtensions";
+	public override VersionNumber Version => new(1, 0, 0);
+	public override Type Type => typeof(AdminExtensionsModule);
+	public override bool ForceModded => false;
 
 #if !MINIMAL
-    private readonly HashSet<ulong> _tpmUsers = [];
-    private const string NoReason = "No reason given";
+	private readonly HashSet<ulong> _tpmUsers = [];
+	private const string NoReason = "No reason given";
 
-    public override void OnServerInit(bool initial)
-    {
-	    base.OnServerInit(initial);
-	    if (!initial) return;
-	    OnEnabled(true);
-    }
+	public override void OnServerInit(bool initial)
+	{
+		base.OnServerInit(initial);
+		if (!initial) return;
+		OnEnabled(true);
+	}
 
-    public override void OnEnabled(bool initialized)
-    {
-	    base.OnEnabled(initialized);
+	public override void OnEnabled(bool initialized)
+	{
+		base.OnEnabled(initialized);
 
-	    if (!initialized) return;
+		if (!initialized) return;
 
 		Permissions.RegisterPermission(ConfigInstance.NameFilter.BypassPermission, this);
 		Permissions.RegisterPermission(ConfigInstance.Spectate.Permission, this);
 		Permissions.RegisterPermission(ConfigInstance.Blind.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.Empower.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.PrivateMessage.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.Lock.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.TeleportMarker.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.Mute.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.MuteList.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.Ban.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.Unban.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.Kick.Permission, this);
-	    Permissions.RegisterPermission(ConfigInstance.ToggleCadmin.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.Empower.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.PrivateMessage.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.Lock.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.TeleportMarker.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.Mute.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.MuteList.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.Ban.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.Unban.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.Kick.Permission, this);
+		Permissions.RegisterPermission(ConfigInstance.ToggleCadmin.Permission, this);
 
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Spectate.Command, this, nameof(CmdSpectate));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Blind.Command, this, nameof(CmdBlind));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Empower.Command, this, nameof(CmdEmpower));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.PrivateMessage.Command, this, nameof(CmdPrivateMessage));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Lock.Command, this, nameof(CmdLockPlayerInventory));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.TeleportMarker.Command, this, nameof(CmdTeleportMarker));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Mute.Command, this, nameof(CmdMute));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.MuteList.Command, this, nameof(CmdMuteList));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Ban.Command, this, nameof(CmdBan));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Unban.Command, this, nameof(CmdUnban));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Kick.Command, this, nameof(CmdKick));
-	    Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.ToggleCadmin.Command, this, nameof(CmdToggleCadmin));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Spectate.Command, this, nameof(CmdSpectate));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Blind.Command, this, nameof(CmdBlind));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Empower.Command, this, nameof(CmdEmpower));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.PrivateMessage.Command, this, nameof(CmdPrivateMessage));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Lock.Command, this, nameof(CmdLockPlayerInventory));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.TeleportMarker.Command, this, nameof(CmdTeleportMarker));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Mute.Command, this, nameof(CmdMute));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.MuteList.Command, this, nameof(CmdMuteList));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Ban.Command, this, nameof(CmdBan));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Unban.Command, this, nameof(CmdUnban));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Kick.Command, this, nameof(CmdKick));
+		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.ToggleCadmin.Command, this, nameof(CmdToggleCadmin));
 
-	    Unsubscribe(nameof(OnMapMarkerAdded));
-    }
-    public override void OnDisabled(bool initialized)
-    {
-	    base.OnDisabled(initialized);
+		Unsubscribe(nameof(OnMapMarkerAdded));
+	}
 
-	    _tpmUsers.Clear();
-    }
+	public override void OnDisabled(bool initialized)
+	{
+		base.OnDisabled(initialized);
 
-    public void TeleportPlayer(BasePlayer player, Vector3 pos)
-    {
-	    if (!player.IsAlive() || player.IsSpectating())
-	    {
-		    return;
-	    }
-	    try
-	    {
-		    player.PauseFlyHackDetection(5f);
-		    player.PauseSpeedHackDetection(5f);
-		    player.UpdateActiveItem(default);
-		    player.EnsureDismounted();
-		    player.Server_CancelGesture();
-		    player.SetParent(null, true, true);
-		    player.SetServerFall(true);
-		    pos.y += 0.1f;
-		    player.MovePosition(pos);
-		    player.ClientRPC(RpcTarget.Player("ForcePositionTo", player), pos);
-		    player.StartSleeping();
-		    player.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, true);
-		    player.ClientRPC(RpcTarget.Player("StartLoading", player));
-		    player.SendEntityUpdate();
-		    player.UpdateNetworkGroup();
-		    player.SendNetworkUpdateImmediate();
-	    }
-	    finally
-	    {
-		    player.SetServerFall(false);
-		    ServerMgr.Instance.Invoke(player.EndSleeping, 0.5f);
-	    }
-    }
+		_tpmUsers.Clear();
+	}
+
+	public void TeleportPlayer(BasePlayer player, Vector3 pos)
+	{
+		if (!player.IsAlive() || player.IsSpectating())
+		{
+			return;
+		}
+
+		try
+		{
+			player.PauseFlyHackDetection(5f);
+			player.PauseSpeedHackDetection(5f);
+			player.UpdateActiveItem(default);
+			player.EnsureDismounted();
+			player.Server_CancelGesture();
+			player.SetParent(null, true, true);
+			player.SetServerFall(true);
+			pos.y += 0.1f;
+			player.MovePosition(pos);
+			player.ClientRPC(RpcTarget.Player("ForcePositionTo", player), pos);
+			player.StartSleeping();
+			player.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, true);
+			player.ClientRPC(RpcTarget.Player("StartLoading", player));
+			player.SendEntityUpdate();
+			player.UpdateNetworkGroup();
+			player.SendNetworkUpdateImmediate();
+		}
+		finally
+		{
+			player.SetServerFall(false);
+			ServerMgr.Instance.Invoke(player.EndSleeping, 0.5f);
+		}
+	}
 
 	[Conditional("!MINIMAL")]
 	private void OnPlayerConnected(BasePlayer player)
@@ -111,7 +113,8 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			return;
 		}
 
-		if (!ConfigInstance.NameFilter.IsValid(player.displayName, player.UserIDString) && ConfigInstance.NameFilter.TryRename(player.displayName, out var newName))
+		if (!ConfigInstance.NameFilter.IsValid(player.displayName, player.UserIDString) &&
+		    ConfigInstance.NameFilter.TryRename(player.displayName, out var newName))
 		{
 			switch (ConfigInstance.NameFilter.Mode)
 			{
@@ -140,32 +143,34 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 					return ConfigInstance.NameFilter.KickMessage;
 			}
 		}
+
 		return null;
 	}
 
 	[Conditional("!MINIMAL")]
-    private void OnMapMarkerAdded(BasePlayer player, MapNote marker)
-    {
-	    if (_tpmUsers.Contains(player.userID))
-	    {
-		    var position = marker.worldPosition + new Vector3(0, TerrainMeta.HeightMap.GetHeight(marker.worldPosition), 0);
-		    TeleportPlayer(player, position);
-		    Community.Runtime.Core.persistence.Invoke(() =>
-		    {
-			    player.State.pointsOfInterest.Remove(marker);
-			    marker.Dispose();
-			    player.DirtyPlayerState();
-			    player.SendMarkersToClient();
-		    }, 0.5f);
-	    }
-    }
+	private void OnMapMarkerAdded(BasePlayer player, MapNote marker)
+	{
+		if (_tpmUsers.Contains(player.userID))
+		{
+			var position = marker.worldPosition +
+			               new Vector3(0, TerrainMeta.HeightMap.GetHeight(marker.worldPosition), 0);
+			TeleportPlayer(player, position);
+			Community.Runtime.Core.persistence.Invoke(() =>
+			{
+				player.State.pointsOfInterest.Remove(marker);
+				marker.Dispose();
+				player.DirtyPlayerState();
+				player.SendMarkersToClient();
+			}, 0.5f);
+		}
+	}
 
-    [Conditional("!MINIMAL")]
-    private void CmdSpectate(BasePlayer player, string _, string[] args)
+	[Conditional("!MINIMAL")]
+	private void CmdSpectate(BasePlayer player, string _, string[] args)
 	{
 		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Spectate.Permission)) return;
 
-		if(player.IsSpectating() && args.Length == 0)
+		if (player.IsSpectating() && args.Length == 0)
 		{
 			player.StopSpectating();
 			return;
@@ -199,6 +204,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			player.ChatMessage($"Unblinded {targetPlayer.displayName}.");
 			return;
 		}
+
 		AdminModule.BlindPlayer(player, targetPlayer);
 		player.ChatMessage($"Blinded {targetPlayer.displayName}.");
 	}
@@ -238,7 +244,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 		}
 
 		var message = string.Join(" ", args, 1, args.Length - 1);
-		AdminModule.PrivateMessagePlayer(player,targetPlayer, message);
+		AdminModule.PrivateMessagePlayer(player, targetPlayer, message);
 	}
 
 	[Conditional("!MINIMAL")]
@@ -265,18 +271,24 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 		switch (args[1])
 		{
 			case "main":
-				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerMain, shouldToggle ? !targetPlayer.inventory.containerMain.IsLocked() : wants);
+				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerMain,
+					shouldToggle ? !targetPlayer.inventory.containerMain.IsLocked() : wants);
 				break;
 			case "wear":
-				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerWear, shouldToggle ? !targetPlayer.inventory.containerWear.IsLocked() : wants);
+				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerWear,
+					shouldToggle ? !targetPlayer.inventory.containerWear.IsLocked() : wants);
 				break;
 			case "belt":
-				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerBelt, shouldToggle ? !targetPlayer.inventory.containerBelt.IsLocked() : wants);
+				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerBelt,
+					shouldToggle ? !targetPlayer.inventory.containerBelt.IsLocked() : wants);
 				break;
 			case "all":
-				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerBelt, shouldToggle ? !targetPlayer.inventory.containerBelt.IsLocked() : wants);
-				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerWear, shouldToggle ? !targetPlayer.inventory.containerWear.IsLocked() : wants);
-				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerMain, shouldToggle ? !targetPlayer.inventory.containerMain.IsLocked() : wants);
+				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerBelt,
+					shouldToggle ? !targetPlayer.inventory.containerBelt.IsLocked() : wants);
+				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerWear,
+					shouldToggle ? !targetPlayer.inventory.containerWear.IsLocked() : wants);
+				AdminModule.LockPlayerContainer(player, targetPlayer, targetPlayer.inventory.containerMain,
+					shouldToggle ? !targetPlayer.inventory.containerMain.IsLocked() : wants);
 				break;
 			default:
 				player.ChatMessage($"Container '{args[0]}' not found.");
@@ -298,6 +310,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			{
 				Unsubscribe(nameof(OnMapMarkerAdded));
 			}
+
 			return;
 		}
 
@@ -466,6 +479,7 @@ public class AdminExtensionsConfig
 	{
 		[JsonProperty("Mode (0=None 1=Kick 2=Rename)")]
 		public FilterModes Mode;
+
 		public string BypassPermission = "adminextensions.namefilter.bypass";
 		public string CharacterWhitelist = "._- ";
 		public string KickMessage = "Your name must only contain English alphanumeric characters.";
@@ -492,6 +506,7 @@ public class AdminExtensionsConfig
 					return false;
 				}
 			}
+
 			return true;
 		}
 
@@ -510,76 +525,27 @@ public class AdminExtensionsConfig
 
 	public NameFilterSettings NameFilter = new();
 
-	public CommandSettings Spectate = new()
-	{
-		Command = "spectate",
-		Permission = "adminextensions.spectate"
-	};
+	public CommandSettings Spectate = new() { Command = "spectate", Permission = "adminextensions.spectate" };
 
-	public CommandSettings Blind = new()
-	{
-		Command = "blind",
-		Permission = "adminextensions.blind"
-	};
+	public CommandSettings Blind = new() { Command = "blind", Permission = "adminextensions.blind" };
 
-	public CommandSettings Empower = new()
-	{
-		Command = "empower",
-		Permission = "adminextensions.empower"
-	};
+	public CommandSettings Empower = new() { Command = "empower", Permission = "adminextensions.empower" };
 
-	public CommandSettings PrivateMessage = new()
-	{
-		Command = "cpm",
-		Permission = "adminextensions.pm"
-	};
+	public CommandSettings PrivateMessage = new() { Command = "cpm", Permission = "adminextensions.pm" };
 
-	public CommandSettings Lock = new()
-	{
-		Command = "lock",
-		Permission = "adminextensions.lock"
-	};
+	public CommandSettings Lock = new() { Command = "lock", Permission = "adminextensions.lock" };
 
-	public CommandSettings TeleportMarker = new()
-	{
-		Command = "tpm",
-		Permission = "adminextensions.tpm"
-	};
+	public CommandSettings TeleportMarker = new() { Command = "tpm", Permission = "adminextensions.tpm" };
 
-	public CommandSettings Mute = new()
-	{
-		Command = "mute",
-		Permission = "adminextensions.mute"
-	};
+	public CommandSettings Mute = new() { Command = "mute", Permission = "adminextensions.mute" };
 
-	public CommandSettings MuteList = new()
-	{
-		Command = "mutelist",
-		Permission = "adminextensions.mutelist"
-	};
+	public CommandSettings MuteList = new() { Command = "mutelist", Permission = "adminextensions.mutelist" };
 
-	public CommandSettings Ban = new()
-	{
-		Command = "ban",
-		Permission = "adminextensions.ban"
-	};
+	public CommandSettings Ban = new() { Command = "ban", Permission = "adminextensions.ban" };
 
-	public CommandSettings Unban = new()
-	{
-		Command = "unban",
-		Permission = "adminextensions.unban"
-	};
+	public CommandSettings Unban = new() { Command = "unban", Permission = "adminextensions.unban" };
 
-	public CommandSettings Kick = new()
-	{
-		Command = "kick",
-		Permission = "adminextensions.kick"
-	};
+	public CommandSettings Kick = new() { Command = "kick", Permission = "adminextensions.kick" };
 
-	public CommandSettings ToggleCadmin = new()
-	{
-		Command = "cadmin",
-		Permission = "adminextensions.cadmin"
-	};
-
+	public CommandSettings ToggleCadmin = new() { Command = "cadmin", Permission = "adminextensions.cadmin" };
 }
