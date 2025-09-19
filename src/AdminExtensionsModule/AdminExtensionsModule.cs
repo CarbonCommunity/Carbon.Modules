@@ -163,7 +163,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 	[Conditional("!MINIMAL")]
 	private void CmdEmpower(BasePlayer player, string _, string[] args)
 	{
-		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Blind.Permission)) return;
+		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Empower.Permission)) return;
 
 		var targetPlayer = BasePlayer.Find(args[0]);
 		if (targetPlayer == null)
@@ -244,7 +244,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 	[Conditional("!MINIMAL")]
 	private void CmdTeleportMarker(BasePlayer player, string _, string[] args)
 	{
-		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Lock.Permission)) return;
+		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.TeleportMarker.Permission)) return;
 
 		if (_tpmUsers.Contains(player.userID))
 		{
