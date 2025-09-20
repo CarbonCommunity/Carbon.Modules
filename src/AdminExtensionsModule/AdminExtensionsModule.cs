@@ -61,8 +61,6 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Unban.Command, this, nameof(CmdUnban));
 		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Kick.Command, this, nameof(CmdKick));
 		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.ToggleCadmin.Command, this, nameof(CmdToggleCadmin));
-
-		Unsubscribe(nameof(OnMapMarkerAdded));
 	}
 
 	public override void OnDisabled(bool initialized)
@@ -301,17 +299,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			player.ChatMessage("Teleport Marker disabled.");
 			_tpmUsers.Remove(player.userID);
 
-			if (_tpmUsers.Count == 0)
-			{
-				Unsubscribe(nameof(OnMapMarkerAdded));
-			}
-
 			return;
-		}
-
-		if (_tpmUsers.Count == 0)
-		{
-			Subscribe(nameof(OnMapMarkerAdded));
 		}
 
 		player.ChatMessage("Teleport Marker enabled.");
@@ -342,9 +330,8 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			reason = NoReason;
 		}
 
-		var isMuted = target.State.chatMuted;
-		AdminModule.MutePlayer(player, target, !isMuted, reason);
-		player.ChatMessage($"You have {(isMuted ? "muted" : "unmuted")} {target.displayName}. Reason: {reason}");
+		AdminModule.MutePlayer(player, target, !target.State.chatMuted, reason);
+		player.ChatMessage($"You have {(target.State.chatMuted ? "muted" : "unmuted")} {target.displayName}. Reason: {reason}");
 	}
 
 	[Conditional("!MINIMAL")]
@@ -358,7 +345,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 		var mutedPlayers = 0;
 		foreach (var target in BasePlayer.activePlayerList)
 		{
-			if (!player.State.chatMuted) continue;
+			if (!target.State.chatMuted) continue;
 			message.AppendLine(target.displayName);
 			mutedPlayers++;
 		}
@@ -381,7 +368,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			return;
 		}
 
-		var target = BasePlayer.Find(args[0]);
+		var target = BasePlayer.FindAwakeOrSleeping(args[0]);
 		if (target == null)
 		{
 			player.ChatMessage($"Player '{args[0]}' not found.");
@@ -409,7 +396,7 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			return;
 		}
 
-		var target = BasePlayer.Find(args[0]);
+		var target = BasePlayer.FindAwakeOrSleeping(args[0]);
 		if (target == null)
 		{
 			player.ChatMessage($"Player '{args[0]}' not found.");
