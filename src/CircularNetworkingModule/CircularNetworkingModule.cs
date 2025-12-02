@@ -85,6 +85,12 @@ public partial class CircularNetworkingModule : CarbonModule<EmptyModuleConfig, 
 
     static bool GetVisibleFromCircle(NetworkVisibilityGrid grid, Group group, ListHashSet<Group> groups, int radius)
     {
+	    // OnNetworkSubscriptionsGather
+	    if (HookCaller.CallStaticHook(26233677, grid, group, groups, radius) != null)
+	    {
+		    return false;
+	    }
+
         List<int> lookup = GetCircleSizeLookup(radius);
         if (lookup == null)
             return true;
