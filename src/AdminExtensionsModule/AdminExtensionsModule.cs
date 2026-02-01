@@ -33,8 +33,6 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 	{
 		base.OnEnabled(initialized);
 
-		if (!initialized) return;
-
 		Permissions.RegisterPermission(ConfigInstance.NameFilter.BypassPermission, this);
 		Permissions.RegisterPermission(ConfigInstance.Spectate.Permission, this);
 		Permissions.RegisterPermission(ConfigInstance.Blind.Permission, this);
@@ -68,39 +66,6 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 		base.OnDisabled(initialized);
 
 		_tpmUsers.Clear();
-	}
-
-	public void TeleportPlayer(BasePlayer player, Vector3 pos)
-	{
-		if (!player.IsAlive() || player.IsSpectating())
-		{
-			return;
-		}
-
-		try
-		{
-			player.PauseFlyHackDetection(5f);
-			player.PauseSpeedHackDetection(5f);
-			player.UpdateActiveItem(default);
-			player.EnsureDismounted();
-			player.Server_CancelGesture();
-			player.SetParent(null, true, true);
-			player.SetServerFall(true);
-			pos.y += 0.1f;
-			player.MovePosition(pos);
-			player.ClientRPC(RpcTarget.Player("ForcePositionTo", player), pos);
-			player.StartSleeping();
-			player.SetPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot, true);
-			player.ClientRPC(RpcTarget.Player("StartLoading", player));
-			player.SendEntityUpdate();
-			player.UpdateNetworkGroup();
-			player.SendNetworkUpdateImmediate();
-		}
-		finally
-		{
-			player.SetServerFall(false);
-			ServerMgr.Instance.Invoke(player.EndSleeping, 0.5f);
-		}
 	}
 
 	[Conditional("!MINIMAL")]
@@ -141,20 +106,18 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 	}
 
 	[Conditional("!MINIMAL")]
-	private void OnMapMarkerAdded(BasePlayer player, MapNote marker)
+	private void OnMapMarkerAdded(BasePlayer player, MapNote note)
 	{
 		if (_tpmUsers.Contains(player.userID))
 		{
-			var position = marker.worldPosition +
-			               new Vector3(0, TerrainMeta.HeightMap.GetHeight(marker.worldPosition), 0);
-			TeleportPlayer(player, position);
-			Community.Runtime.Core.persistence.Invoke(() =>
-			{
-				player.State.pointsOfInterest.Remove(marker);
-				marker.Dispose();
-				player.DirtyPlayerState();
-				player.SendMarkersToClient();
-			}, 0.5f);
+			var position = note.worldPosition + Vector3.up * (TerrainMeta.HeightMap.GetHeight(note.worldPosition) + 1f);
+			note.Dispose();
+			player.State.pointsOfInterest.Remove(note);
+			player.DirtyPlayerState();
+			player.SendMarkersToClient();
+			player.Teleport(position);
+			player.UpdateNetworkGroup();
+			player.SendFullSnapshot();
 		}
 	}
 
