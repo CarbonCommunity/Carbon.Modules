@@ -135,7 +135,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			return;
 		}
 
-		var effectInstance = Effect.reusableInstace;
+		var effectInstance = Effect.reusableInstance;
 		effectInstance.Init(Effect.Type.Generic, player, 0, Vector3.up, Vector3.zero);
 		effectInstance.pooledstringid = StringPool.Get(effect);
 
