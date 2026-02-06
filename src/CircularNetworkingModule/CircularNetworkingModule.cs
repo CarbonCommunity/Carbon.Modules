@@ -38,24 +38,24 @@ public partial class CircularNetworkingModule : CarbonModule<EmptyModuleConfig, 
     }
     public override void OnEnabled(bool initialized)
     {
-        if (initialized)
-        {
-            visibilityRadiusFarOverrideOriginal = ConVar.Net.visibilityRadiusFarOverride;
-            visibilityRadiusNearOverrideOriginal = ConVar.Net.visibilityRadiusNearOverride;
-        }
-
-        if (ConVar.Net.visibilityRadiusFarOverride == -1)
-            ConVar.Net.visibilityRadiusFarOverride = 6;
-
-        if (ConVar.Net.visibilityRadiusNearOverride == -1)
-            ConVar.Net.visibilityRadiusNearOverride = 4;
+        // if (initialized)
+        // {
+        //     visibilityRadiusFarOverrideOriginal = ConVar.Net.visibilityRadiusFarOverride;
+        //     visibilityRadiusNearOverrideOriginal = ConVar.Net.visibilityRadiusNearOverride;
+        // }
+        //
+        // if (ConVar.Net.visibilityRadiusFarOverride == -1)
+        //     ConVar.Net.visibilityRadiusFarOverride = 6;
+        //
+        // if (ConVar.Net.visibilityRadiusNearOverride == -1)
+        //     ConVar.Net.visibilityRadiusNearOverride = 4;
 
         base.OnEnabled(initialized);
     }
     public override void OnDisabled(bool initialized)
     {
-        ConVar.Net.visibilityRadiusFarOverride = visibilityRadiusFarOverrideOriginal;
-        ConVar.Net.visibilityRadiusNearOverride = visibilityRadiusNearOverrideOriginal;
+        // ConVar.Net.visibilityRadiusFarOverride = visibilityRadiusFarOverrideOriginal;
+        // ConVar.Net.visibilityRadiusNearOverride = visibilityRadiusNearOverrideOriginal;
 
         base.OnDisabled(initialized);
     }
