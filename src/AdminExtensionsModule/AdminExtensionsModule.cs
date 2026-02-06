@@ -34,7 +34,6 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 		base.OnEnabled(initialized);
 
 		Permissions.RegisterPermission(ConfigInstance.NameFilter.BypassPermission, this);
-		Permissions.RegisterPermission(ConfigInstance.Spectate.Permission, this);
 		Permissions.RegisterPermission(ConfigInstance.Blind.Permission, this);
 		Permissions.RegisterPermission(ConfigInstance.Empower.Permission, this);
 		Permissions.RegisterPermission(ConfigInstance.PrivateMessage.Permission, this);
@@ -47,7 +46,6 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 		Permissions.RegisterPermission(ConfigInstance.Kick.Permission, this);
 		Permissions.RegisterPermission(ConfigInstance.ToggleCadmin.Permission, this);
 
-		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Spectate.Command, this, nameof(CmdSpectate));
 		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Blind.Command, this, nameof(CmdBlind));
 		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.Empower.Command, this, nameof(CmdEmpower));
 		Community.Runtime.Core.cmd.AddChatCommand(ConfigInstance.PrivateMessage.Command, this, nameof(CmdPrivateMessage));
@@ -119,27 +117,6 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 			player.UpdateNetworkGroup();
 			player.SendFullSnapshot();
 		}
-	}
-
-	[Conditional("!MINIMAL")]
-	private void CmdSpectate(BasePlayer player, string _, string[] args)
-	{
-		if (!Permissions.UserHasPermission(player.UserIDString, ConfigInstance.Spectate.Permission)) return;
-
-		if (player.IsSpectating() && args.Length == 0)
-		{
-			player.StopSpectating();
-			return;
-		}
-
-		var targetPlayer = BasePlayer.Find(args[0]);
-		if (targetPlayer == null)
-		{
-			player.ChatMessage($"Player '{args[0]}' not found.");
-			return;
-		}
-
-		AdminModule.StartSpectating(player, targetPlayer);
 	}
 
 	[Conditional("!MINIMAL")]
@@ -469,8 +446,6 @@ public class AdminExtensionsConfig
 	}
 
 	public NameFilterSettings NameFilter = new();
-
-	public CommandSettings Spectate = new() { Command = "spectate", Permission = "adminextensions.spectate" };
 
 	public CommandSettings Blind = new() { Command = "blind", Permission = "adminextensions.blind" };
 
