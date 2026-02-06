@@ -24,8 +24,8 @@ public partial class CircularNetworkingModule : CarbonModule<EmptyModuleConfig, 
     public override bool EnabledByDefault => false;
 	public override bool ForceDisabled => true;
 
-    internal int visibilityRadiusFarOverrideOriginal;
-    internal int visibilityRadiusNearOverrideOriginal;
+    // internal int visibilityRadiusFarOverrideOriginal;
+    // internal int visibilityRadiusNearOverrideOriginal;
 
     private void CircularNetworkDistance() { }
 
