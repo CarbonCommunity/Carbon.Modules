@@ -23,8 +23,8 @@ public partial class CircularNetworkingModule : CarbonModule<EmptyModuleConfig, 
     public override Type Type => typeof(CircularNetworkingModule);
     public override bool EnabledByDefault => false;
 
-    internal int visibilityRadiusFarOverrideOriginal;
-    internal int visibilityRadiusNearOverrideOriginal;
+    // internal int visibilityRadiusFarOverrideOriginal;
+    // internal int visibilityRadiusNearOverrideOriginal;
 
     private void CircularNetworkDistance() { }
 
