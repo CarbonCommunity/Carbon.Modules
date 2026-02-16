@@ -181,6 +181,10 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.drownEffect = _emptyEffect;
 
 			player._limitedNetworking = true;
+			player.syncPosition = false;
+			player.isInvisible = true;
+
+			BaseEntity.Query.Server.RemovePlayer(player);
 			player.DisablePlayerCollider();
 
 			using var temp = Pool.Get<PooledList<Connection>>();
@@ -224,7 +228,12 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.transform.localScale = Vector3.one;
 
 			player.ResetAntiHack();
+			player.syncPosition = true;
 			player._limitedNetworking = false;
+			player.isInvisible = false;
+
+			BaseEntity.Query.Server.RemovePlayer(player);
+			BaseEntity.Query.Server.AddPlayer(player);
 
 			player.EnablePlayerCollider();
 			player.SendNetworkUpdate();
@@ -329,6 +338,17 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 	{
 		public BasePlayer player;
 
+		private void Start()
+		{
+			InvokeRepeating(nameof(UpdateNetworkGroups), 1f, 5f);
+		}
+
+		private void UpdateNetworkGroups()
+		{
+			if (player == null || !player.IsConnected) return;
+			player.net.UpdateGroups(player.transform.position);
+		}
+
 		public void Init(BasePlayer player)
 		{
 			this.player = player;
@@ -409,6 +429,30 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			}
 
 			return true;
+		}
+	}
+
+	[AutoPatch, HarmonyPatch(typeof(BaseEntity), "SignalBroadcast", typeof(BaseEntity.Signal), typeof(string), typeof(Connection), typeof(string), typeof(float))]
+	public static class SignalBroadcastPatch
+	{
+		[UsedImplicitly]
+		[HarmonyPrefix]
+		public static bool Prefix(Connection sourceConnection)
+		{
+			if (sourceConnection == null) return true;
+			return Singleton == null || !Singleton.IsEnabled() || !Singleton.IsPlayerVanished(sourceConnection.userid);
+		}
+	}
+
+	[AutoPatch, HarmonyPatch(typeof(EffectNetwork), "Send", typeof(Effect))]
+	public static class EffectNetworkPatch
+	{
+		[UsedImplicitly]
+		[HarmonyPrefix]
+		public static bool Prefix(Effect effect)
+		{
+			if (effect == null || effect.source == 0) return true;
+			return Singleton == null || !Singleton.IsEnabled() || !Singleton.IsPlayerVanished(effect.source);
 		}
 	}
 
