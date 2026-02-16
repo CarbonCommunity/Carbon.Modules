@@ -432,6 +432,21 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		}
 	}
 
+	[AutoPatch, HarmonyPatch(typeof(BasePlayer), nameof(BasePlayer.Teleport), typeof(Vector3))]
+	public static class TeleportPatch
+	{
+		[UsedImplicitly]
+		[HarmonyPrefix]
+		public static bool Prefix(BasePlayer __instance, Vector3 position)
+		{
+			if (Singleton == null || !Singleton.IsEnabled() || !Singleton.IsPlayerVanished(__instance)) return true;
+
+			__instance.MovePosition(position, false);
+			__instance.ClientRPC(RpcTarget.Player("ForcePositionTo", __instance), position);
+			return false;
+		}
+	}
+
 	[AutoPatch, HarmonyPatch(typeof(BaseEntity), "SignalBroadcast", typeof(BaseEntity.Signal), typeof(string), typeof(Connection), typeof(string), typeof(float))]
 	public static class SignalBroadcastPatch
 	{
