@@ -9,7 +9,7 @@
 	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
-		<Reference Include="$(SolutionDir)..\Rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
+		<Reference Include="$(SolutionDir)..\rust\$(OperatingSystem)\RustDedicated_Data\Managed\UnityEngine.CoreModule.dll" Private="false" />
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
 	</ItemGroup>
 
