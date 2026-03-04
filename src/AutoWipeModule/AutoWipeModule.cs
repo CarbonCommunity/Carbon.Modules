@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
+using Cronos;
 using Newtonsoft.Json;
 using Oxide.Core;
-using Cronos;
 using Oxide.Plugins;
 using Random = UnityEngine.Random;
 
@@ -86,8 +87,9 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 			if (config.PostWipeCommands != null)
 			{
-				foreach (var command in config.PostWipeCommands)
+				for(int i = 0; i < config.PostWipeCommands.Length; i++)
 				{
+					var command = config.PostWipeCommands[i];
 					if (string.IsNullOrEmpty(command))
 						continue;
 					ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), command);
@@ -96,10 +98,41 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 			if (config.PostWipeDeletes != null)
 			{
-				foreach (var delete in config.PostWipeDeletes)
+				for(int i = 0; i < config.PostWipeDeletes.Length; i++)
 				{
+					var delete = config.PostWipeDeletes[i];
 					if (string.IsNullOrEmpty(delete))
 						continue;
+
+					if (delete.Contains("*"))
+					{
+						var directoryPath = Path.GetDirectoryName(delete);
+						var searchPattern = Path.GetFileName(delete);
+
+						if (string.IsNullOrEmpty(directoryPath))
+						{
+							directoryPath = ".";
+						}
+
+						if (Directory.Exists(directoryPath))
+						{
+							try
+							{
+								var matchingFiles = Directory.GetFiles(directoryPath, searchPattern);
+								for (int o = 0; o < matchingFiles.Length; o++)
+								{
+									var file = matchingFiles[o];
+									File.Delete(file);
+									PutsWarn($"AutoWipe deleting scheduled file '{file}'");
+								}
+							}
+							catch (Exception ex)
+							{
+								PutsWarn($"AutoWipe error deleting files matching pattern '{delete}': {ex.Message}");
+							}
+						}
+						continue;
+					}
 
 					if (OsEx.File.Exists(delete))
 					{
@@ -244,8 +277,9 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 		if (DataInstance.NextWipe.Commands != null)
 		{
-			foreach (var command in DataInstance.NextWipe.Commands)
+			for(int i = 0; i < DataInstance.NextWipe.Commands.Length; i++)
 			{
+				var command = DataInstance.NextWipe.Commands[i];
 				if (string.IsNullOrEmpty(command))
 					continue;
 				ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), command);
