@@ -123,12 +123,12 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 								{
 									var file = matchingFiles[o];
 									File.Delete(file);
-									PutsWarn($"AutoWipe deleting scheduled file '{file}'");
+									PutsWarn($"Deleting scheduled file '{file}'");
 								}
 							}
 							catch (Exception ex)
 							{
-								PutsWarn($"AutoWipe error deleting files matching pattern '{delete}': {ex.Message}");
+								PutsError($"Error deleting files matching pattern '{delete}'", ex);
 							}
 						}
 						continue;
@@ -137,14 +137,14 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 					if (OsEx.File.Exists(delete))
 					{
 						OsEx.File.Delete(delete);
-						PutsWarn($"AutoWipe deleting scheduled file '{delete}'");
+						PutsWarn($"Deleting scheduled file '{delete}'");
 						continue;
 					}
 
 					if (OsEx.Folder.Exists(delete))
 					{
 						OsEx.Folder.Delete(delete);
-						PutsWarn($"AutoWipe deleting scheduled directory '{delete}'");
+						PutsWarn($"Deleting scheduled directory '{delete}'");
 					}
 				}
 			}
@@ -191,14 +191,13 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 
 		var result = (nextWipe.next.GetValueOrDefault() - DateTime.UtcNow).TotalSeconds;
-		player.ChatMessage($"Next wipe happens in <color=orange>{TimeEx.Format(result, false).ToLower()}</color>.");
+		player.ChatMessage($"Next wipe happens in <color=orange>{TimeEx.Format(result, false).ToLower()}</color>");
 	}
 
 	public override void OnServerInit(bool initial)
 	{
 		base.OnServerInit(initial);
-
-		wipeTimer = Community.Runtime.Core.timer.Every(wipeTick, WipeTickImpl);
+		OnEnableStatus();
 	}
 
 	public override bool PreLoadShouldSave(bool newConfig, bool newData)
@@ -212,6 +211,43 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 
 		return invalidConfigCorrected;
+	}
+
+	public override void OnEnabled(bool initialized)
+	{
+		base.OnEnabled(initialized);
+
+		if (initialized)
+		{
+			if (wipeTimer != null)
+			{
+				wipeTimer.Destroy();
+			}
+			wipeTimer = Community.Runtime.Core.timer.Every(wipeTick, WipeTickImpl);
+		}
+	}
+
+	public override void OnDisabled(bool initialized)
+	{
+		base.OnDisabled(initialized);
+		if (initialized)
+		{
+			if (wipeTimer != null)
+			{
+				wipeTimer.Destroy();
+				wipeTimer = null;
+			}
+		}
+	}
+
+	public override void OnUnload()
+	{
+		if (wipeTimer != null)
+		{
+			wipeTimer.Destroy();
+			wipeTimer = null;
+		}
+		base.OnUnload();
 	}
 
 	private void RefreshHostName()
