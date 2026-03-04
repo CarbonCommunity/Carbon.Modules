@@ -81,9 +81,9 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			wipe.CloneTo(DataInstance.Wipe);
 			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps, DataInstance.LastWipeTime);
 
-			using var table = new StringTable("wipe name", "seed", "size", "url");
+			using var table = new StringTable("wipe_name", "seed", "size", "url");
 			table.AddRow(wipe.WipeName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
-			PutsWarn($"New wipe detected!\n{table.ToStringMinimal()}");
+			PutsWarn($"New wipe detected!\n{table.Write(StringTable.FormatTypes.None)}");
 
 			if (config.PostWipeCommands != null)
 			{
