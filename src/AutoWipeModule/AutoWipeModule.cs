@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Carbon.Base;
 using Carbon.Components;
 using Carbon.Extensions;
+using Cronos;
 using Newtonsoft.Json;
 using Oxide.Core;
-using Cronos;
 using Oxide.Plugins;
 using Random = UnityEngine.Random;
 
@@ -80,14 +81,15 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			wipe.CloneTo(DataInstance.Wipe);
 			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps, DataInstance.LastWipeTime);
 
-			using var table = new StringTable("wipe name", "seed", "size", "url");
+			using var table = new StringTable("wipe_name", "seed", "size", "url");
 			table.AddRow(wipe.WipeName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
-			PutsWarn($"New wipe detected!\n{table.ToStringMinimal()}");
+			PutsWarn($"New wipe detected!\n{table.Write(StringTable.FormatTypes.None)}");
 
 			if (config.PostWipeCommands != null)
 			{
-				foreach (var command in config.PostWipeCommands)
+				for(int i = 0; i < config.PostWipeCommands.Length; i++)
 				{
+					var command = config.PostWipeCommands[i];
 					if (string.IsNullOrEmpty(command))
 						continue;
 					ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), command);
@@ -96,22 +98,53 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 			if (config.PostWipeDeletes != null)
 			{
-				foreach (var delete in config.PostWipeDeletes)
+				for(int i = 0; i < config.PostWipeDeletes.Length; i++)
 				{
+					var delete = config.PostWipeDeletes[i];
 					if (string.IsNullOrEmpty(delete))
 						continue;
+
+					if (delete.Contains("*"))
+					{
+						var directoryPath = Path.GetDirectoryName(delete);
+						var searchPattern = Path.GetFileName(delete);
+
+						if (string.IsNullOrEmpty(directoryPath))
+						{
+							directoryPath = ".";
+						}
+
+						if (Directory.Exists(directoryPath))
+						{
+							try
+							{
+								var matchingFiles = Directory.GetFiles(directoryPath, searchPattern);
+								for (int o = 0; o < matchingFiles.Length; o++)
+								{
+									var file = matchingFiles[o];
+									File.Delete(file);
+									PutsWarn($"Deleting scheduled file '{file}'");
+								}
+							}
+							catch (Exception ex)
+							{
+								PutsError($"Error deleting files matching pattern '{delete}'", ex);
+							}
+						}
+						continue;
+					}
 
 					if (OsEx.File.Exists(delete))
 					{
 						OsEx.File.Delete(delete);
-						PutsWarn($"AutoWipe deleting scheduled file '{delete}'");
+						PutsWarn($"Deleting scheduled file '{delete}'");
 						continue;
 					}
 
 					if (OsEx.Folder.Exists(delete))
 					{
 						OsEx.Folder.Delete(delete);
-						PutsWarn($"AutoWipe deleting scheduled directory '{delete}'");
+						PutsWarn($"Deleting scheduled directory '{delete}'");
 					}
 				}
 			}
@@ -158,14 +191,13 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 
 		var result = (nextWipe.next.GetValueOrDefault() - DateTime.UtcNow).TotalSeconds;
-		player.ChatMessage($"Next wipe happens in <color=orange>{TimeEx.Format(result, false).ToLower()}</color>.");
+		player.ChatMessage($"Next wipe happens in <color=orange>{TimeEx.Format(result, false).ToLower()}</color>");
 	}
 
 	public override void OnServerInit(bool initial)
 	{
 		base.OnServerInit(initial);
-
-		wipeTimer = Community.Runtime.Core.timer.Every(wipeTick, WipeTickImpl);
+		OnEnableStatus();
 	}
 
 	public override bool PreLoadShouldSave(bool newConfig, bool newData)
@@ -179,6 +211,43 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 
 		return invalidConfigCorrected;
+	}
+
+	public override void OnEnabled(bool initialized)
+	{
+		base.OnEnabled(initialized);
+
+		if (initialized)
+		{
+			if (wipeTimer != null)
+			{
+				wipeTimer.Destroy();
+			}
+			wipeTimer = Community.Runtime.Core.timer.Every(wipeTick, WipeTickImpl);
+		}
+	}
+
+	public override void OnDisabled(bool initialized)
+	{
+		base.OnDisabled(initialized);
+		if (initialized)
+		{
+			if (wipeTimer != null)
+			{
+				wipeTimer.Destroy();
+				wipeTimer = null;
+			}
+		}
+	}
+
+	public override void OnUnload()
+	{
+		if (wipeTimer != null)
+		{
+			wipeTimer.Destroy();
+			wipeTimer = null;
+		}
+		base.OnUnload();
 	}
 
 	private void RefreshHostName()
@@ -244,8 +313,9 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 		if (DataInstance.NextWipe.Commands != null)
 		{
-			foreach (var command in DataInstance.NextWipe.Commands)
+			for(int i = 0; i < DataInstance.NextWipe.Commands.Length; i++)
 			{
+				var command = DataInstance.NextWipe.Commands[i];
 				if (string.IsNullOrEmpty(command))
 					continue;
 				ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), command);
