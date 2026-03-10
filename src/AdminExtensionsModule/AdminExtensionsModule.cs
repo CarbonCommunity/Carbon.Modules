@@ -25,13 +25,17 @@ public partial class AdminExtensionsModule : CarbonModule<AdminExtensionsConfig,
 	public override void OnServerInit(bool initial)
 	{
 		base.OnServerInit(initial);
-		if (!initial) return;
 		OnEnabled(true);
 	}
 
 	public override void OnEnabled(bool initialized)
 	{
 		base.OnEnabled(initialized);
+
+		if (!initialized)
+		{
+			return;
+		}
 
 		Permissions.RegisterPermission(ConfigInstance.NameFilter.BypassPermission, this);
 		Permissions.RegisterPermission(ConfigInstance.Blind.Permission, this);
