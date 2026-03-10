@@ -46,6 +46,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 
 		if (InCooldown())
 		{
+			Singleton.PutsWarn($"Initialized world config [WIPE_COOLDOWN]");
 			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps, DataInstance.LastWipeTime);
 			return;
 		}
@@ -78,12 +79,9 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			}
 
 			DataInstance.Wipe ??= new();
-			wipe.CloneTo(DataInstance.Wipe);
+			wipe.CopyTo(DataInstance.Wipe);
+			PutsWarn($"New wipe detected!");
 			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps, DataInstance.LastWipeTime);
-
-			using var table = new StringTable("wipe_name", "seed", "size", "url");
-			table.AddRow(wipe.WipeName, wipe.ServerSeed, wipe.MapSize, wipe.MapUrl);
-			PutsWarn($"New wipe detected!\n{table.Write(StringTable.FormatTypes.None)}");
 
 			if (config.PostWipeCommands != null)
 			{
@@ -153,6 +151,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		}
 		else
 		{
+			Singleton.PutsWarn($"Initialized world config");
 			DataInstance.Wipe?.InitWorld(ConfigInstance.Maps, DataInstance.LastWipeTime);
 		}
 	}
@@ -507,7 +506,7 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 		[JsonProperty("Type (0=fullwipe 1=mapwipe)")]
 		public WipeTypes Type;
 
-		public void CloneTo(Wipe other)
+		public void CopyTo(Wipe other)
 		{
 			other.WipeName = WipeName;
 			other.Commands = Commands.ToArray();
@@ -543,6 +542,10 @@ public partial class AutoWipeModule : CarbonModule<AutoWipeConfig, AutoWipeData>
 			if (ServerSeed == 0)
 				ServerSeed = Random.Range(1, int.MaxValue);
 			World.InitSeed(ConVar.Server.seed = ServerSeed);
+
+			using var table = new StringTable("wipe_name", "seed", "size", "url");
+			table.AddRow(WipeName, ServerSeed, MapSize, MapUrl);
+			Logger.Warn(table.Write(StringTable.FormatTypes.None));
 		}
 
 		public override bool Equals(object other)
