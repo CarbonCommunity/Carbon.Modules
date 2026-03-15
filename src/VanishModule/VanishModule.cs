@@ -184,6 +184,11 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.syncPosition = false;
 			player.isInvisible = true;
 
+			if (!BasePlayer.invisPlayers.Contains(player))
+			{
+				BasePlayer.invisPlayers.Add(player);
+			}
+
 			BaseEntity.Query.Server.RemovePlayer(player);
 			player.DisablePlayerCollider();
 
@@ -231,6 +236,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 			player.syncPosition = true;
 			player._limitedNetworking = false;
 			player.isInvisible = false;
+			BasePlayer.invisPlayers.Remove(player);
 
 			BaseEntity.Query.Server.RemovePlayer(player);
 			BaseEntity.Query.Server.AddPlayer(player);
