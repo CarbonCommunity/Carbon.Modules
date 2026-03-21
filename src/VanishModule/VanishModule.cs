@@ -352,7 +352,7 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		private void UpdateNetworkGroups()
 		{
 			if (player == null || !player.IsConnected) return;
-			player.net.UpdateGroups(player.transform.position);
+			player.net.UpdateGroups(player.transform.position, player.networkRange);
 		}
 
 		public void Init(BasePlayer player)
