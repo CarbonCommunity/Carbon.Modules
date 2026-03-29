@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Carbon.Base;
@@ -465,12 +465,12 @@ public partial class VanishModule : CarbonModule<VanishConfig, EmptyModuleData>
 		}
 	}
 
-	[AutoPatch, HarmonyPatch(typeof(EffectNetwork), "Send", typeof(Effect))]
+	[AutoPatch, HarmonyPatch(typeof(EffectNetwork), "Send", typeof(Effect), typeof(EntityNetworkRange))]
 	public static class EffectNetworkPatch
 	{
 		[UsedImplicitly]
 		[HarmonyPrefix]
-		public static bool Prefix(Effect effect)
+		public static bool Prefix(Effect effect, EntityNetworkRange networkRange)
 		{
 			if (effect == null || effect.source == 0) return true;
 			return Singleton == null || !Singleton.IsEnabled() || !Singleton.IsPlayerVanished(effect.source);
